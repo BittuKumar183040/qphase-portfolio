@@ -1,9 +1,9 @@
 "use client"
 
 import { motion } from "framer-motion";
-import PipelineDiagram from "./PipelineDiagram";
 import { container, item } from "./scroll-sections/core/Reveal";
 import { hero } from "../config/content";
+import PipelineDiagram from "./scroll-sections/PipelineDiagram";
 
 export default function Hero() {
   return (
@@ -26,7 +26,7 @@ export default function Hero() {
           </motion.p>
 
           <motion.div variants={item} className="mt-10">
-            <PipelineDiagram layout="branch" />
+            <PipelineDiagram />
           </motion.div>
 
           <motion.p variants={item} className="mt-8 max-w-md text-[#8B8577]">

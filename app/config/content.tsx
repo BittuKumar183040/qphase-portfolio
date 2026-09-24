@@ -27,14 +27,16 @@ export const navItems: NavItem[] = [
   { id: "statusAndAsk", label: "Status and the Ask" },
 ];
 
-export const pipelineSteps = [
-  "Circuit IR",
-  "Decompose",
-  "Route",
-  "Optimize",
-  "Invariant Broker",
-  "Hardware",
-] as const;
+export const pipelineSteps = {
+  "Circuit IR":{desc:"Initail Process of working."},
+  "Decompose": {desc: "decompose the file"},
+  "Route": {desc: "desicde where the flow continues"},
+  "Optimize": {desc: "optimeze the data"},
+  "Invariant Broker": {desc: "perform computation and workings"},
+  "Hardware": {desc: "making it compactable with hardware"},
+ } as const;
+
+
 
 export const hero = {
   eyebrow: "QPhase × Rexcurx",
