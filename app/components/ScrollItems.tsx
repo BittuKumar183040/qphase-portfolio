@@ -1,22 +1,11 @@
 "use client"
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, useScroll } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { navItems } from "../config/content";
 
-const DOT_SIZE = 8; // px — matches the `size-2` dot below
+const DOT_SIZE = 8;
 
-/**
- * Scrollspy driven by a trigger line at `triggerRatio` down the viewport
- * (default 30%), not by IntersectionObserver visibility. With full-height
- * (min-h-dvh) sections, "is it intersecting" stays true for almost the
- * whole scroll, so the old approach only switched once the previous
- * section had nearly left the screen. This instead walks the sections in
- * order and keeps the last one whose top has crossed above the trigger
- * line — so the indicator advances as soon as the next section reaches
- * 30% into the screen, regardless of how much of the previous one is
- * still visible below it.
- */
 function useActiveSection(ids: string[], triggerRatio = 0.3) {
   const [activeId, setActiveId] = useState<string | null>(ids[0] ?? null);
 
@@ -60,11 +49,6 @@ function useActiveSection(ids: string[], triggerRatio = 0.3) {
   return activeId;
 }
 
-/**
- * The rail only belongs to the scroll-sections story — it fades in once
- * The Approach has reached the same 30% trigger line, and fades back out
- * if the user scrolls back above it.
- */
 function useRailVisible(firstId: string, triggerRatio = 0.3) {
   const [visible, setVisible] = useState(false);
 
@@ -96,12 +80,6 @@ function useRailVisible(firstId: string, triggerRatio = 0.3) {
   return visible;
 }
 
-/**
- * Measures the exact vertical span between the center of the first dot and
- * the center of the last dot (relative to the nav container), so the rail
- * can be drawn precisely from circle to circle — never past the first one
- * or beyond the last one, and always threaded through their centers.
- */
 function useDotSpan(dotCount: number, deps: unknown[]) {
   const containerRef = useRef<HTMLElement | null>(null);
   const dotRefs = useRef<(HTMLSpanElement | null)[]>([]);
@@ -137,7 +115,6 @@ export default function ScrollItems() {
   const ids = navItems.map((n) => n.id);
   const activeId = useActiveSection(ids);
   const railVisible = useRailVisible(ids[0]);
-  const { scrollYProgress } = useScroll();
 
   const { containerRef, dotRefs, span } = useDotSpan(navItems.length, [railVisible]);
 
@@ -161,16 +138,11 @@ export default function ScrollItems() {
             aria-label="Section navigation"
             className="relative flex min-w-37 flex-col gap-7 py-3"
           >
-            {/* track — spans exactly from the first dot's center to the last dot's center */}
+            {/* static track — spans exactly from the first dot's center to the last dot's center */}
             <div
               className="pointer-events-none absolute z-0 w-px bg-[#E4DFD3]"
               style={{ left: DOT_SIZE / 2, top: span.top, height: span.height }}
-            >
-              <motion.div
-                style={{ scaleY: scrollYProgress }}
-                className="absolute inset-0 w-px origin-top bg-[#8C4A2A]"
-              />
-            </div>
+            />
 
             {navItems.map((navItem, i) => {
               const isActive = navItem.id === activeId;

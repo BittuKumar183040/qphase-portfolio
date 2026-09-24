@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import PipelineDiagram from "./PipelineDiagram";
-import { container, item } from "./scroll-sections/Reveal";
+import { container, item } from "./scroll-sections/core/Reveal";
 import { hero } from "../config/content";
 
 export default function Hero() {
