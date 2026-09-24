@@ -2,7 +2,7 @@
 
 import ScrollItems from "../components/ScrollItems";
 import { ScrollSectionData } from "../config/content";
-import Layout from "./scroll-sections/core/layout";
+import Layout from "./scroll-sections/core/scroll-layout";
 
 const ScrollSections = () => {
   return (
