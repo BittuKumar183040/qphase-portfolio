@@ -68,7 +68,7 @@ export default function ProblemSolution() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
           variants={stagger}
-          className="relative flex h-full w-full flex-col bg-black p-5 text-white sm:p-10 md:p-20"
+          className="relative flex h-full w-full flex-col bg-black text-white p-5 sm:p-10 md:p-20"
         >
           <div className="w-full max-w-2xl">
 
@@ -92,7 +92,7 @@ export default function ProblemSolution() {
               <HighlightedText
                 text={problem.title.text}
                 styled={problem.title.styled}
-                className="text-white/50"
+                className="text-[#733d22]"
               />
             </motion.h2>
 
@@ -179,7 +179,7 @@ export default function ProblemSolution() {
               <HighlightedText
                 text={solution.title.text}
                 styled={solution.title.styled}
-                className="text-black/50"
+                className="text-[#733d22]"
               />
             </motion.h2>
 

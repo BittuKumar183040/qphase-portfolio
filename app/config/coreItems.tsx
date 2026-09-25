@@ -18,7 +18,7 @@ export const CORE_ITEMS: CoreItem[] = [
     side: "left",
     label: "One compiler. Seven chips.",
     title:
-      "IBM, Rigetti, Google, IonQ, Pasqal, QuEra, and photonic — all from a single intermediate representation.",
+      "Different Quantum Hardware — all from a single intermediate representation.",
     width: 220,
     x: [14, 24, 8],
     y: [40, 36, 30],
@@ -32,16 +32,6 @@ export const CORE_ITEMS: CoreItem[] = [
     width: 190,
     x: [16, 26, 8],
     y: [64, 58, 56],
-  },
-  {
-    id: "real-numbers",
-    side: "left",
-    label: "Real numbers, not benchmark theatre.",
-    title:
-      "13 circuits, 4,096 shots each, cross-checked against IBM's own hardware emulator — 0.934 mean agreement.",
-    width: 230,
-    x: [40, 34, 8],
-    y: [84, 82, 82],
   },
   {
     id: "invariant-broker",

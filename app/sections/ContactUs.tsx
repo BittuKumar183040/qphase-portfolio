@@ -32,7 +32,7 @@ export default function ContactUs() {
           className="text-3xl font-medium leading-[1.04] tracking-tight text-black dark:text-white sm:text-4xl lg:text-5xl"
         >
           Ready to build with{" "}
-          <span className="text-black/40 dark:text-white/40">QPhase?</span>
+          <span className="text-[#733d22]">QPhase?</span>
         </motion.h2>
 
         <motion.a

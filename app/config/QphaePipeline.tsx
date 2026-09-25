@@ -16,7 +16,7 @@ export const baseNodes: PipelineNode[] = [
     position: { x: 0, y: 0 },
     data: {
       number: "01",
-      label: "Quantum Algorithm",
+      label: "Problem Input",
       description:
         "Write the algorithm once without targeting a specific quantum chip.",
     },
@@ -27,9 +27,9 @@ export const baseNodes: PipelineNode[] = [
     position: { x: 0, y: 0 },
     data: {
       number: "02",
-      label: "QPhase IR",
+      label: "Pre-Processing",
       description:
-        "The algorithm becomes a hardware-independent representation.",
+        "QPhase Intermediate Representation",
       accent: true,
     },
   },
@@ -41,7 +41,7 @@ export const baseNodes: PipelineNode[] = [
       number: "03",
       label: "Compiler",
       description:
-        "The same representation is mapped to the target hardware.",
+        "Quantum Execution Engine",
       accent: true,
     },
   },
@@ -73,9 +73,9 @@ export const baseNodes: PipelineNode[] = [
     position: { x: 0, y: 0 },
     data: {
       number: "05",
-      label: "Invariant Validation",
+      label: "Post-Process Engine",
       description:
-        "The compiled circuit is checked against the original physics.",
+        "Do processing operation includes Backend Results, Normalization, Metrics Engine, Risk Engine, Exeution Report",
       accent: true,
     },
   },
@@ -85,9 +85,9 @@ export const baseNodes: PipelineNode[] = [
     position: { x: 0, y: 0 },
     data: {
       number: "06",
-      label: "Verified Result",
+      label: "Application Integration",
       description:
-        "Only validated results move forward to execution.",
+        "Allowing to work on different application such as FoldShild and Omega Signal.",
       accent: true,
     },
   },

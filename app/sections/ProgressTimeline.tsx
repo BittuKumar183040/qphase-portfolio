@@ -19,21 +19,23 @@ function stageFor(value: string): Stage {
   return "upcoming";
 }
 
+// Colors are fixed, not theme-conditional — this component always sits on a bg-black
+// surface, regardless of the site's light/dark mode, so it needs one palette, not two.
 const STAGE_STYLE: Record<Stage, { dot: string; ring: string; text: string }> = {
   done: {
-    dot: "bg-emerald-500",
-    ring: "ring-emerald-500/25",
-    text: "text-emerald-600 dark:text-emerald-400",
+    dot: "bg-emerald-400",
+    ring: "ring-emerald-400/25",
+    text: "text-emerald-400",
   },
   progress: {
-    dot: "bg-amber-500",
-    ring: "ring-amber-500/25",
-    text: "text-amber-600 dark:text-amber-400",
+    dot: "bg-amber-400",
+    ring: "ring-amber-400/25",
+    text: "text-amber-400",
   },
   upcoming: {
-    dot: "bg-black/20 dark:bg-white/20",
-    ring: "ring-black/10 dark:ring-white/10",
-    text: "text-black/40 dark:text-white/40",
+    dot: "bg-white/20",
+    ring: "ring-white/10",
+    text: "text-white/40",
   },
 };
 
@@ -51,7 +53,7 @@ export default function ProgressTimeline({
   items?: ProgressStatusItem[];
 }) {
   return (
-    <motion.div variants={item} className="w-full">
+    <motion.div variants={item} className="w-full bg-black py-20">
       <ol className="flex list-none flex-col gap-8 sm:flex-row sm:gap-0">
         {items.map((entry, index) => {
           const stage = stageFor(entry.value);
@@ -67,7 +69,7 @@ export default function ProgressTimeline({
               {index > 0 && (
                 <span
                   aria-hidden
-                  className="absolute bottom-1/2 left-[7px] top-0 w-px bg-black/15 dark:bg-white/15 sm:bottom-auto sm:left-0 sm:right-1/2 sm:top-[7px] sm:h-px sm:w-auto"
+                  className="absolute bottom-1/2 left-[7px] top-0 w-px bg-white/15 sm:bottom-auto sm:left-0 sm:right-1/2 sm:top-[7px] sm:h-px sm:w-auto"
                 />
               )}
 
@@ -83,7 +85,7 @@ export default function ProgressTimeline({
               </span>
 
               <div className="sm:mt-4">
-                <p className="text-sm font-medium text-black/80 dark:text-white/80">{entry.label}</p>
+                <p className="text-sm font-medium text-white/80">{entry.label}</p>
                 <p className={`mt-1 text-xs font-medium uppercase tracking-wide ${styles.text}`}>
                   {entry.value}
                 </p>
