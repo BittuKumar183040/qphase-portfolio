@@ -55,13 +55,13 @@ function applyTheme(theme: Theme) {
 
 const SlidingPillToggle = () => {
   const [mounted, setMounted] = useState(false);
-  const [theme, setTheme] = useState<Theme>("dark");
+  const [theme, setTheme] = useState<Theme>("light");
   const [gliderStyle, setGliderStyle] = useState<React.CSSProperties>({});
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem("theme") as Theme;
-    const initial = saved ?? "dark";
+    const initial = saved ?? "light";
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setTheme(initial);
     applyTheme(initial);

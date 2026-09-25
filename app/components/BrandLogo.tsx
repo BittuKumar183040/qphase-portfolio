@@ -20,7 +20,7 @@ const BrandLogo = () => {
           unoptimized
         />
       </div>
-      <p className=" text-xs md:text-xl font-quantico ">{hero.eyebrow}</p>
+      <p className=" text-xs md:text-xl ">{hero.eyebrow}</p>
     </Link>
   );
 };

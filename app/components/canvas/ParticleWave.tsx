@@ -105,12 +105,25 @@ export const ParticleWave = ({
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setClearColor(0x000000, 0);
+    // Prevent the browser from hijacking pointer input for touch-scroll —
+    // without this, pointermove on touch/pen devices can get swallowed
+    // before it ever reaches our handler.
+    renderer.domElement.style.touchAction = "none";
     mount.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
+    // Size off the mount container, not window.innerWidth/innerHeight.
+    // The pointer raycast below reads mount's actual bounding rect, so if
+    // this component isn't a literal fullscreen background (e.g. it sits
+    // inside a section, a flex/sidebar layout, or gets resized without the
+    // window itself resizing), the camera aspect + canvas pixel size drift
+    // out of sync with the rect used for hover math — the ray no longer
+    // lines up with what's on screen and the pointer bump stops landing.
+    const initialWidth = mount.clientWidth || window.innerWidth;
+    const initialHeight = mount.clientHeight || window.innerHeight;
     const camera = new THREE.PerspectiveCamera(
       FOV,
-      window.innerWidth / window.innerHeight,
+      initialWidth / initialHeight,
       0.1,
       500
     );
@@ -208,8 +221,9 @@ export const ParticleWave = ({
     materialRef.current = material;
 
     const resize = () => {
-      const w = window.innerWidth;
-      const h = window.innerHeight;
+      const w = mount.clientWidth;
+      const h = mount.clientHeight;
+      if (w === 0 || h === 0) return;
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
@@ -218,7 +232,12 @@ export const ParticleWave = ({
         2
       );
     };
-    window.addEventListener("resize", resize);
+    // Watch the container itself, not just window resizes — this also
+    // catches layout-driven size changes (sidebar toggles, flex reflow,
+    // orientation change) that never fire a window "resize" event, which
+    // is exactly the kind of drift that broke the pointer/hover alignment.
+    const resizeObserver = new ResizeObserver(resize);
+    resizeObserver.observe(mount);
     resize();
 
     // --- pointer interaction: raycast the cursor onto the y=0 water plane,
@@ -353,7 +372,7 @@ export const ParticleWave = ({
     rafId = requestAnimationFrame(draw);
 
     return () => {
-      window.removeEventListener("resize", resize);
+      resizeObserver.disconnect();
       mount.removeEventListener("pointermove", onPointerMove);
       mount.removeEventListener("pointerleave", onPointerLeave);
       cancelAnimationFrame(rafId);
@@ -368,7 +387,7 @@ export const ParticleWave = ({
     };
   }, []);
 
-  return <div className="absolute inset-0 w-full h-full block" ref={mountRef} />;
+  return <div className="absolute inset-0 w-full h-full  block" ref={mountRef} />;
 };
 
 export default ParticleWave;

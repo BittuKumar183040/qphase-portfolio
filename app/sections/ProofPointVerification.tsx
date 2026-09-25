@@ -26,38 +26,38 @@ const reveal: Variants = {
   },
 };
 
-const partner = {
-  eyebrow: "FOR PARTNERS",
-  heading: {
-    line1: "What a partner",
-    line2: "actually gets",
-  },
-  body: "Not a benchmark slide — a compiler you can point at your own circuits and trust the number that comes back.",
-  items: [
-    {
-      title: "A fidelity number you can defend",
-      body: "Every result ships with the Broker's verification trace, not just a pass/fail.",
+const verification = {
+    eyebrow: "VERIFICATION",
+    heading: {
+      line1: "Proof, not",
+      line2: "a promise",
     },
-    {
-      title: "One integration, seven backends",
-      body: "Target any supported chip from the same Circuit IR without re-validating your pipeline each time.",
-    },
-    {
-      title: "An explicit error bound past exact simulation",
-      body: "MPS scaling keeps verification honest even when circuits outgrow exact methods.",
-    },
-    {
-      title: "Disclosure, not rounding",
-      body: "Backend limits — like the photonic path's 5-qubit ceiling — are stated upfront.",
-    },
-  ],
-};
+    body: "13 real benchmark circuits, compiled cross-checked between inhouse noise simulator and super conductive emulator.",
+    stats: [
+      {
+        value: "13/13",
+        label: "Broker-verified vs. real quantum emulator",
+      },
+      {
+        value: "0.934",
+        label: "Mean fidelity agreement across circuits",
+      },
+      {
+        value: "4–10",
+        label: "Qubit range actually measured",
+      },
+      {
+        value: "4,096",
+        label: "Shots per circuit, every run",
+      },
+    ],
+  }
 
-export default function WhatAPartnerGets() {
-  const { eyebrow, heading, body, items } = partner;
- 
+export default function ProofPointVerification() {
+  const { eyebrow, heading, body, stats } = verification;
+
   return (
-    <div className="mt-24">
+    <div className="p-5 sm:p-10 md:p-20">
       {/* Header */}
       <motion.div
         initial="hidden"
@@ -69,19 +69,18 @@ export default function WhatAPartnerGets() {
           <span className="text-[10px] font-medium uppercase tracking-[0.22em] text-black/50 dark:text-white/50">
             {eyebrow}
           </span>
- 
+
           <span className="h-px w-10 bg-black/20 dark:bg-white/20" />
         </motion.div>
- 
+
         <motion.h2
           variants={reveal}
           className="max-w-3xl text-4xl font-medium leading-[1.04] tracking-tight text-black dark:text-white sm:text-5xl lg:text-6xl"
         >
-          {heading.line1}
-          <br />
+          {heading.line1} {" "}
           <span className="text-black/40 dark:text-white/40">{heading.line2}</span>
         </motion.h2>
- 
+
         <motion.p
           variants={reveal}
           className="mt-6 max-w-2xl text-base leading-relaxed text-black/60 dark:text-white/60 sm:text-lg"
@@ -89,20 +88,26 @@ export default function WhatAPartnerGets() {
           {body}
         </motion.p>
       </motion.div>
- 
-      {/* List */}
+
+      {/* Stats grid */}
       <motion.div
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.1 }}
         variants={stagger}
-        className="mt-14 flex flex-col divide-y divide-black/10 border-y border-black/10 dark:divide-white/10 dark:border-white/10"
+        className="mt-14 grid grid-cols-2 gap-2.5 sm:gap-3"
       >
-        {items.map((thing) => (
-          <motion.div variants={reveal} key={thing.title} className="py-6">
-            <p className="font-medium text-black/80 dark:text-white/80">{thing.title}</p>
-            <p className="mt-1.5 max-w-2xl leading-relaxed text-black/60 dark:text-white/60">
-              {thing.body}
+        {stats.map((stat) => (
+          <motion.div
+            variants={reveal}
+            key={stat.label}
+            className="rounded-sm border border-black/10 bg-black/3 px-4 py-4 text-black dark:border-white/10 dark:bg-white/5 dark:text-white sm:px-5 sm:py-5"
+          >
+            <p className="text-lg font-medium tracking-tight sm:text-xl lg:text-2xl">
+              {stat.value}
+            </p>
+            <p className="mt-2 text-xs leading-snug text-black/60 dark:text-white/60 sm:text-sm">
+              {stat.label}
             </p>
           </motion.div>
         ))}

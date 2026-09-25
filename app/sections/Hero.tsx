@@ -140,7 +140,7 @@ const Hero = () => {
     >
       <motion.h1
         variants={heroSectionItem}
-        className="flex flex-col items-center gap-2 text-center font-quantico-bold text-2xl font-bold text-[#8C4A2A] md:text-4xl"
+        className="flex flex-col items-center gap-2 text-center text-2xl font-bold text-[#8C4A2A] md:text-4xl"
       >
         <span className=" text-black dark:text-white">{hero.title}</span>
         <TypingText texts={hero.endTexts} staticTexts={hero.static} />
@@ -158,7 +158,7 @@ const Hero = () => {
         target="_blank"
         rel="noopener noreferrer"
         variants={heroSectionItem}
-        className="mt-8 flex flex-wrap items-center gap-4 sm:mt-10 sm:gap-6"
+        className="mt-8 flex flex-wrap items-center gap-4 sm:mt-10 sm:gap-6 z-10"
       >
         <button className="inline-flex w-auto items-center justify-center whitespace-nowrap rounded-sm bg-[#8C4A2A] px-6 py-1 text-sm font-medium text-[#F6F3EE] transition-all duration-200 hover:bg-[#733D22] hover:shadow-md active:scale-[0.98] sm:px-5 sm:py-3 sm:text-base">
           <span>{hero.primaryCta}</span>

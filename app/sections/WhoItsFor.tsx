@@ -5,6 +5,7 @@ import { motion, Variants } from "framer-motion";
 import HorizontalEntity from "../components/HorizontalEntity";
 import MediaReveal from "../components/ui/MediaReveal";
 import { eyebrow, heading, subHeading, WHO_ITS_FOR } from "../config/whoItsFor";
+import WhatAPartnerGets from "./scroll-sections/WhatAPartnerGets";
 
 const stagger: Variants = {
   hidden: {},
@@ -34,7 +35,7 @@ export default function WhoItsFor() {
   return (
     <section
       id="who-its-for"
-      className="relative w-full bg-white px-6 py-24 text-black dark:bg-black dark:text-white sm:px-5 md:px-10 lg:px-20"
+      className="relative w-full bg-white py-24 text-black dark:bg-black dark:text-white sm:px-5 md:px-10 lg:px-20"
     >
       {/* Header */}
       <motion.div
@@ -90,6 +91,8 @@ export default function WhoItsFor() {
           </MediaReveal>
         ))}
       </motion.div>
+      <WhatAPartnerGets/>
+      
     </section>
   );
 }

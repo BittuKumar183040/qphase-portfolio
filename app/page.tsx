@@ -7,28 +7,32 @@ import Footer from "./sections/Footer";
 import Hero from "./sections/Hero";
 import Navbar from "./sections/Navbar";
 import ProblemSolution from "./sections/ProblemSolution";
+import ProgressTimeline from "./sections/ProgressTimeline";
 import QphasePipeline from "./sections/QphasePipeline";
+import ProofPointVerification from "./sections/ProofPointVerification";
+import WhatAPartnerGets from "./sections/scroll-sections/WhatAPartnerGets";
 import ScrollSections from "./sections/ScrollSections";
 import WhoItsFor from "./sections/WhoItsFor";
 
 export default function Home() {
   return (
-    <div className=" text-black dark:text-white overflow-x-hidden">
+    <div className=" text-black dark:text-white bg-white dark:bg-black overflow-x-hidden">
       <Navbar />
-      <section id="home" className="relative flex w-full h-dvh">
+      <section id="home" className="relative flex w-full h-dvh bg-white dark:bg-black">
         <Hero />
-        <div className=" absolute top-0 left-0 w-full h-full pointer-events-none -z-10 bg-white dark:bg-black">
-          {/* <img src="./images/Luminous Blue.png" className=" object-cover h-full w-full " /> */}
-          <ParticleWaveTerrain />
-        </div>
+        <ParticleWaveTerrain />
       </section>
-      <section className="bg-white dark:bg-black">
+      
+      <section className="bg-white dark:bg-black ">
         <ContainerScroll titleComponent="">
           <CoreSection coreImageSrc="/asset/Logo.svg" />
         </ContainerScroll>
       </section>
-      <ScrollSections />
       <ProblemSolution />
+      <ProgressTimeline />
+
+      {/* <ScrollSections /> */}
+      <ProofPointVerification />
       <QphasePipeline />
       <WhoItsFor />
       <ContactUs />

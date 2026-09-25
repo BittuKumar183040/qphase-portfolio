@@ -132,7 +132,7 @@ const Navbar = () => {
     </div>
     <nav
       ref={navContainerRef}
-      className="fixed w-full backdrop-blur-xl bg-white/20 dark:bg-black/20 flex justify-end items-center inset-x-0 top-0 z-40 p-3 px-5 md:px-10 lg:px-20"
+      className="fixed w-full bg-white dark:bg-black flex justify-end items-center inset-x-0 top-0 z-40 p-3 px-5 md:px-10 lg:px-20"
     >
       <SlidingPillToggle />
     </nav>

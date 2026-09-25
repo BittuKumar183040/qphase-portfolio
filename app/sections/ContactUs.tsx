@@ -10,7 +10,7 @@ export default function ContactUs() {
   return (
     <section
       id="contact"
-      className="relative w-full bg-white px-6 py-24 text-black dark:bg-black dark:text-white sm:px-5 md:px-10 lg:px-20"
+      className="relative w-full bg-white py-24 text-black dark:bg-black dark:text-white sm:px-5 md:px-10 lg:px-20"
     >
       <motion.div
         initial="hidden"
