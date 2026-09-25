@@ -20,7 +20,10 @@ export const pipelineSteps = {
 } as const;
 
 export const hero = {
-  eyebrow: "QPhase × Rexcurx",
+  eyebrow: {
+    qphase: "QPhase",
+    rexcrux: "RexCrux",
+  },
   title: "Write Your Quantum Algorithm Once.",
   static: ["Run", "Run", "Run on", "Run on"],
   endTexts: ["Anywhere.", "Everywhere.", "Any Hardware.", "Any Architecture."],
