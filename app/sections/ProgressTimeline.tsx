@@ -42,8 +42,8 @@ const STAGE_STYLE: Record<Stage, { dot: string; ring: string; text: string }> = 
 // Same shape/content as the `status` array you shared — used as the default so the component
 // renders correctly with no props. Pass your own `items` to override.
 const DEFAULT_ITEMS: ProgressStatusItem[] = [
-  { label: "Supercondicated *", value: "Benchmarked" },
-  { label: "Photonic *", value: "RND - Inprogress" },
+  { label: "Superconducting *", value: "Benchmarked" },
+  { label: "Photonic *", value: "R&D - Inprogress" },
   { label: "Netural Atom *", value: "Upcomming" },
 ];
 

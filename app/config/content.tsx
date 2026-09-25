@@ -59,7 +59,7 @@ export const ScrollSectionData = {
 
 export const status = [
   {
-    label: "Supercondicated *", //done
+    label: "Superconducting *", //done
     value: "Benchmarked",
   },
   {

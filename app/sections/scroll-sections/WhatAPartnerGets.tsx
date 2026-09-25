@@ -39,7 +39,7 @@ const partner = {
       body: "Every result ships with the Broker's verification trace, not just a pass/fail.",
     },
     {
-      title: "One integration, seven backends",
+      title: "One integration, several backends",
       body: "Target any supported chip from the same Circuit IR without re-validating your pipeline each time.",
     },
     {

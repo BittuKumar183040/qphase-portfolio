@@ -10,8 +10,6 @@ import ProblemSolution from "./sections/ProblemSolution";
 import ProgressTimeline from "./sections/ProgressTimeline";
 import QphasePipeline from "./sections/QphasePipeline";
 import ProofPointVerification from "./sections/ProofPointVerification";
-import WhatAPartnerGets from "./sections/scroll-sections/WhatAPartnerGets";
-import ScrollSections from "./sections/ScrollSections";
 import WhoItsFor from "./sections/WhoItsFor";
 
 export default function Home() {
@@ -29,11 +27,11 @@ export default function Home() {
         </ContainerScroll>
       </section>
       <ProblemSolution />
+      <QphasePipeline />
       <ProgressTimeline />
 
       {/* <ScrollSections /> */}
       <ProofPointVerification />
-      <QphasePipeline />
       <WhoItsFor />
       <ContactUs />
       <Footer />

@@ -14,9 +14,9 @@ export const CORE_ITEMS: CoreItem[] = [
     y: [14, 10, 4],
   },
   {
-    id: "one-compiler-seven-chips",
+    id: "one-compiler-several-chips",
     side: "left",
-    label: "One compiler. Seven chips.",
+    label: "One compiler. several chips.",
     title:
       "Different Quantum Hardware — all from a single intermediate representation.",
     width: 220,
