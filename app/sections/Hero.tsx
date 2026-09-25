@@ -132,17 +132,14 @@ const Hero = () => {
 
   return (
     <motion.div
-      className="relative flex h-7/12 w-full flex-col items-center justify-center p-5
-        bg-linear-to-b from-white/0 via-white/70 to-white
-        dark:from-black/0 dark:via-black/70 dark:to-black
-      "
+      className="relative flex h-7/12 w-full flex-col items-center justify-center p-5 "
       variants={container}
       initial="hidden"
       animate="visible"
     >
       <motion.h1
         variants={heroSectionItem}
-        className="flex flex-col items-center gap-2 text-center font-quantico-bold text-xl font-bold text-[#8C4A2A] md:text-4xl"
+        className="flex flex-col items-center gap-2 text-center font-quantico-bold text-2xl font-bold text-[#8C4A2A] md:text-4xl"
       >
         <span className=" text-black dark:text-white">{hero.title}</span>
         <TypingText texts={hero.endTexts} staticTexts={hero.static} />
@@ -150,7 +147,7 @@ const Hero = () => {
 
       <motion.p
         variants={heroSectionItem}
-        className="mt-8 max-w-lg text-center text-[#8B8577] text-sm md:text-md"
+        className="mt-8 max-w-lg text-center text-[#8B8577] md:text-xs"
       >
         {hero.pipelineNote}
       </motion.p>
@@ -159,19 +156,11 @@ const Hero = () => {
         variants={heroSectionItem}
         className="mt-8 flex flex-wrap items-center gap-4 sm:mt-10 sm:gap-6"
       >
-        <button
-          className="inline-flex w-auto items-center justify-center whitespace-nowrap rounded-sm bg-[#8C4A2A] px-4 py-2.5 text-sm font-medium text-[#F6F3EE] transition-all duration-200 hover:bg-[#733D22] hover:shadow-md active:scale-[0.98] sm:px-5 sm:py-3 sm:text-base"
-        >
+        <button className="inline-flex w-auto items-center justify-center whitespace-nowrap rounded-sm bg-[#8C4A2A] px-6 py-1 text-sm font-medium text-[#F6F3EE] transition-all duration-200 hover:bg-[#733D22] hover:shadow-md active:scale-[0.98] sm:px-5 sm:py-3 sm:text-base">
           <span>{hero.primaryCta}</span>
           <span className="ml-2 transition-transform duration-300 group-hover:translate-x-1">
             →
           </span>
-        </button>
-
-        <button
-          className="inline-flex w-auto items-center justify-center whitespace-nowrap border-l border-[#3A362E]/30 pl-3 text-sm font-medium text-[#3A362E] transition-colors duration-200 hover:text-[#8C4A2A] sm:pl-5 sm:text-base"
-        >
-          {hero.secondaryCta}
         </button>
       </motion.div>
 

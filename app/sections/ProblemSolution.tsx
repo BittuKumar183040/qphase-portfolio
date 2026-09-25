@@ -155,7 +155,7 @@ export default function ProblemSolution() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
           variants={stagger}
-          className="relative flex h-full w-full flex-col border-t border-black/10 bg-white p-5 text-black sm:p-10 md:p-20 lg:border-l lg:border-t-0"
+          className="relative flex h-full w-full flex-col border-t border-black/10 bg-white dark:bg-black/20 p-5 text-black sm:p-10 md:p-20 lg:border-l lg:border-t-0"
         >
           <div className="w-full max-w-2xl">
 
@@ -211,7 +211,7 @@ export default function ProblemSolution() {
                     className="group relative flex gap-5"
                   >
                     {/* Number */}
-                    <div className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-black/20 bg-white text-xs font-medium text-black/60 transition-all duration-300 group-hover:border-black/60 group-hover:text-black">
+                    <div className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-black/20 dark:bg-black dark:text-white/80 text-xs font-medium text-black/60 transition-all duration-300 group-hover:border-black/60 group-hover:text-black group-hover:dark:text-white ">
                       {item.number}
                     </div>
 

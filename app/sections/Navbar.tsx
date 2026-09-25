@@ -127,7 +127,7 @@ const Navbar = () => {
   }, [pathname]);
 
   return (<>
-    <div className=" fixed top-1 left-19 z-50 ">
+    <div className=" fixed top-1 md:left-19 left-2 z-50 ">
       <BrandLogo />
     </div>
     <nav

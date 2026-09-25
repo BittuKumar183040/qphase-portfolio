@@ -44,8 +44,7 @@ export const hero = {
   static: ["Run", "Run", "Run on", "Run on"],
   endTexts: ["Anywhere.", "Everywhere.", "Any Hardware.", "Any Architecture."],
   pipelineNote: "Every compile is checked against the original circuit's own physics before it reaches hardware.",
-  primaryCta: "See the Validation Data",
-  secondaryCta: "Contact",
+  primaryCta: "Contact Us",
   footer: "RexCrux · September 2028",
 };
 

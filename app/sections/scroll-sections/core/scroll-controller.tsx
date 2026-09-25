@@ -158,6 +158,35 @@ export function ScrollControllerProvider({
     [setPinnedState]
   );
 
+  // Mobile Safari/Chrome resize the browser chrome (address bar) as the user
+  // scrolls, and `100dvh` is *supposed* to track that live — but the CSS
+  // recalculation can lag a frame or more behind the actual chrome
+  // collapse/expand, especially right when engage()'s programmatic scrollTo
+  // fires. That lag is what leaves a sliver of the next stacked section
+  // visible under the pinned one. window.visualViewport.height (falling
+  // back to window.innerHeight) reflects the real, current rendered
+  // viewport with no such lag, so we track it in a CSS var and size the
+  // pinned stage off that instead of trusting `dvh` alone.
+  useEffect(() => {
+    const setViewportVar = () => {
+      const height = window.visualViewport?.height ?? window.innerHeight;
+      document.documentElement.style.setProperty("--app-vh", `${height}px`);
+    };
+
+    setViewportVar();
+
+    const vv = window.visualViewport;
+    vv?.addEventListener("resize", setViewportVar);
+    window.addEventListener("resize", setViewportVar);
+    window.addEventListener("orientationchange", setViewportVar);
+
+    return () => {
+      vv?.removeEventListener("resize", setViewportVar);
+      window.removeEventListener("resize", setViewportVar);
+      window.removeEventListener("orientationchange", setViewportVar);
+    };
+  }, []);
+
   // IntersectionObserver, not scroll-position polling: it reports visibility
   // as of each check, so a large/fast scroll jump can't skip past a narrow
   // detection window the way frame-by-frame rect polling could.

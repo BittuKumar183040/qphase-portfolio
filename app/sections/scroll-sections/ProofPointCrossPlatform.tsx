@@ -17,7 +17,7 @@ export default function ProofPointCrossPlatform() {
 
       <motion.div
         variants={item}
-        className="mt-10 grid grid-cols-1 gap-px overflow-hidden rounded-sm bg-white dark:bg-gray-900/40 sm:grid-cols-2"
+        className="mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-sm bg-white dark:bg-gray-900/40 sm:grid-cols-3"
       >
         {ScrollSectionData.crossPlatform.backends.map((b) => (
           <div key={b.name} className="bg-black/10 dark:bg-gray-900/30 px-5 py-4">

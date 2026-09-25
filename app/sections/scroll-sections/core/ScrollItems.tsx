@@ -61,12 +61,12 @@ export default function ScrollItems() {
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: 20 }}
           transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-          className="fixed right-8 top-1/2 z-40 hidden -translate-y-1/2 lg:block xl:right-16"
+          className="fixed right-4 top-1/2 z-40 -translate-y-1/2 sm:right-6 lg:right-8 xl:right-16"
         >
           <nav
             ref={containerRef as React.RefObject<HTMLElement>}
             aria-label="Section navigation"
-            className="relative flex min-w-37 flex-col gap-7 py-3"
+            className="relative flex min-w-0 flex-col gap-5 py-3 lg:min-w-37 lg:gap-7"
           >
             {/* static track — spans exactly from the first dot's center to the last dot's center */}
             <div
@@ -80,7 +80,8 @@ export default function ScrollItems() {
                 <button
                   key={navItem.id}
                   onClick={() => handleClick(navItem.id)}
-                  className="group relative z-10 flex items-center gap-4 text-left"
+                  aria-label={navItem.label}
+                  className="group relative z-10 flex items-center gap-0 text-left lg:gap-4"
                 >
                   <span
                     ref={(el) => {
@@ -98,7 +99,7 @@ export default function ScrollItems() {
                     )}
                   </span>
 
-                  <span className="relative block h-fit overflow-hidden">
+                  <span className="relative hidden h-fit overflow-hidden lg:block">
                     <AnimatePresence mode="wait" initial={false}>
                       {isActive ? (
                         <motion.span

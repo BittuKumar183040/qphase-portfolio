@@ -29,7 +29,13 @@ function ScrollStage() {
   return (
     <div
       ref={rootRef}
-      className="relative h-dvh w-full overflow-hidden bg-white dark:bg-black text-black dark:text-white antialiased"
+      // `h-dvh` is the fallback for the brief instant before the
+      // ScrollControllerProvider effect sets --app-vh (or if JS is
+      // disabled); once set, --app-vh is the source of truth and doesn't
+      // suffer from mobile browsers' dvh-recalculation lag. See the
+      // viewport-var effect in scroll-controller.tsx for why.
+      style={{ height: "var(--app-vh, 100dvh)" }}
+      className="relative w-full overflow-hidden bg-white dark:bg-black text-black dark:text-white antialiased"
     >
       {/* Brief scanline sweep on every hop — the "digital dissolve" cue
           standing in for a literal matrix-rain effect (kept in the deck's
