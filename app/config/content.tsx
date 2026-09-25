@@ -49,8 +49,6 @@ export const hero = {
   footer: "RexCrux · September 2028",
 };
 
-export const mindMapCenter = { label: "Q" };
-
 export const mindMapNodes = [
   {
     title: "No more underselling your circuits.",

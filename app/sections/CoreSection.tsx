@@ -213,7 +213,7 @@ function CoreNode({ data }: NodeProps) {
       <span className="absolute inset-0 animate-ping rounded-full border-2 border-white/20 dark:border-black/20 [animation-duration:2.6s]" />
       <span className="absolute inset-0 animate-ping rounded-full border-2 border-white/20 dark:border-black/20 [animation-delay:0.6s] [animation-duration:2.6s]" />
 
-      <div className="relative size-50 overflow-hidden rounded-full bg-black [animation-duration:2.4s] md:size-32">
+      <div className="relative size-50 overflow-hidden rounded-full dark:bg-black bg-white [animation-duration:2.4s] md:size-32">
         <img
           src={coreImageSrc}
           alt=""
@@ -342,7 +342,7 @@ function CoreSectionInner({ coreImageSrc, items = CORE_ITEMS }: CoreSectionProps
     // reverts to the original parent-controlled h-full/w-full sizing.
     <section
       ref={sectionRef}
-      className="relative aspect-[720/1180] max-h-dvh w-full sm:aspect-[980/680] lg:aspect-auto lg:h-full lg:max-h-none"
+      className="relative pointer-events-none aspect-[720/1180] max-h-dvh w-full sm:aspect-[980/680] lg:aspect-auto lg:h-full lg:max-h-none"
     >
       <ReactFlow
         nodes={nodes}

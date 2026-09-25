@@ -11,7 +11,7 @@ import WhoItsFor from "./sections/WhoItsFor";
 
 export default function Home() {
   return (
-    <div className=" text-black dark:text-white ">
+    <div className=" text-black dark:text-white overflow-x-hidden ">
       <Navbar />
       <section id="home" className="relative flex w-full h-dvh">
         <Hero />
