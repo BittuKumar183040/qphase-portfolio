@@ -59,7 +59,7 @@ export default function ProblemSolution() {
   const { problem, solution } = ProblemSolutionData;
 
   return (
-    <section className="relative w-full overflow-hidden">
+    <section className="relative w-full overflow-hidden bg-white">
       <div className="grid lg:grid-cols-2">
 
         {/* PROBLEM */}

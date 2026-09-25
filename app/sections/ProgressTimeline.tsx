@@ -53,7 +53,7 @@ export default function ProgressTimeline({
   items?: ProgressStatusItem[];
 }) {
   return (
-    <motion.div variants={item} className="w-full bg-black py-20">
+    <motion.div variants={item} className="w-full bg-black/80 py-20">
       <ol className="flex list-none flex-col gap-8 sm:flex-row sm:gap-0">
         {items.map((entry, index) => {
           const stage = stageFor(entry.value);
