@@ -8,7 +8,7 @@ export default function HowItWorks() {
     <>
       <motion.h2
         variants={item}
-        className="text-3xl font-medium tracking-tight text-[#3A362E] sm:text-4xl"
+        className="text-3xl font-medium tracking-tight text-black dark:text-white sm:text-4xl"
       >
         {ScrollSectionData.howItWorks.headline}
       </motion.h2>
@@ -19,7 +19,7 @@ export default function HowItWorks() {
 
       <motion.p
         variants={item}
-        className="mt-8 max-w-lg text-[15px] leading-relaxed text-[#4A463C]"
+        className="mt-8 max-w-lg text-[15px] leading-relaxed text-black/80 dark:text-white/80 "
       >
         {ScrollSectionData.howItWorks.body}
       </motion.p>

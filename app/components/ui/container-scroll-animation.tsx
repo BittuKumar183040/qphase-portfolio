@@ -65,7 +65,7 @@ export const Card = ({
         borderRadius: radius,
         transformPerspective: 1200,
       }}
-      className="relative origin-top overflow-hidden bg-black shadow-2xl dark:bg-white"
+      className="relative origin-top overflow-hidden bg-black dark:bg-white"
     >
       <div className="relative w-full h-dvh -mb-20">
         <div className="absolute left-1/2 top-0 h-full w-screen max-w-none -translate-x-1/2">

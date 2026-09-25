@@ -48,17 +48,17 @@ function StepNode({ id, data }: NodeProps<Node<StepData>>) {
         className={
           "flex items-center justify-center rounded-sm border px-3 text-sm tracking-wide transition-colors duration-300 " +
           (active
-            ? "border-[#8C4A2A] bg-[#8C4A2A] text-[#F6F3EE] shadow-[0_0_0_4px_rgba(140,74,42,0.15)]"
-            : "border-[#D8D2C4] text-[#3A362E] hover:border-[#8C4A2A]/60")
+            ? "border-amber-800 bg-amber-800 text-stone-50 shadow-[0_0_0_4px_rgba(140,74,42,0.15)] dark:border-amber-600 dark:bg-amber-600 dark:text-stone-950 dark:shadow-[0_0_0_4px_rgba(217,158,116,0.18)]"
+            : "border-stone-300 text-stone-700 hover:border-amber-800/60 dark:border-stone-700 dark:text-stone-300 dark:hover:border-amber-500/60")
         }
       >
         {label}
       </button>
 
       {open && (
-        <div className="absolute left-1/2 top-full z-50 mt-2 w-56 -translate-x-1/2 rounded-sm border border-[#D8D2C4] bg-[#F6F3EE] p-3 text-left text-xs text-[#3A362E] shadow-lg">
+        <div className="absolute left-1/2 top-full z-50 mt-2 w-56 -translate-x-1/2 rounded-sm border border-stone-300 bg-stone-50 p-3 text-left text-xs text-stone-700 shadow-lg dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300">
           <div className="mb-1 font-medium">{label}</div>
-          <div className="text-[#6b675c]">{desc}</div>
+          <div className="text-stone-500 dark:text-stone-400">{desc}</div>
         </div>
       )}
     </div>
@@ -144,7 +144,10 @@ export default function PipelineDiagram({
           focusable: false,
           selectable: false,
           interactionWidth: 0, // edges are purely decorative — no clicks/hover
-          style: { stroke: traveled ? "#8C4A2A" : "#D8D2C4", strokeWidth: 1.5 },
+          style: {
+            stroke: traveled ? "var(--pipeline-edge-active)" : "var(--pipeline-edge-idle)",
+            strokeWidth: 1.5,
+          },
         };
       }),
     [cols, activeIndex]
@@ -160,6 +163,14 @@ export default function PipelineDiagram({
           panOnDrag is off, so its cursor and drag behavior get pinned
           down explicitly here too. */}
       <style>{`
+        .pipeline-flow {
+          --pipeline-edge-active: #8C4A2A;
+          --pipeline-edge-idle: #D8D2C4;
+        }
+        .dark .pipeline-flow {
+          --pipeline-edge-active: #D99E74;
+          --pipeline-edge-idle: #44403c;
+        }
         .pipeline-flow .react-flow__renderer,
         .pipeline-flow .react-flow__pane,
         .pipeline-flow.react-flow {

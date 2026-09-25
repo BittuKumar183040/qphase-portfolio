@@ -1,84 +1,11 @@
 "use client"
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { navItems } from "../config/content";
+import { useScrollController } from "./scroll-controller";
+import { navItems } from "@/app/config/content";
 
 const DOT_SIZE = 8;
-
-function useActiveSection(ids: string[], triggerRatio = 0.3) {
-  const [activeId, setActiveId] = useState<string | null>(ids[0] ?? null);
-
-  useEffect(() => {
-    const sections = ids
-      .map((id) => document.getElementById(id))
-      .filter((el): el is HTMLElement => el !== null);
-
-    if (sections.length === 0) return;
-
-    let raf = 0;
-
-    const update = () => {
-      raf = 0;
-      const triggerY = window.innerHeight * triggerRatio;
-
-      let current = sections[0].id;
-      for (const el of sections) {
-        if (el.getBoundingClientRect().top <= triggerY) {
-          current = el.id;
-        }
-      }
-      setActiveId((prev) => (prev === current ? prev : current));
-    };
-
-    const onScroll = () => {
-      if (raf) return;
-      raf = requestAnimationFrame(update);
-    };
-
-    update();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      if (raf) cancelAnimationFrame(raf);
-    };
-  }, [ids, triggerRatio]);
-
-  return activeId;
-}
-
-function useRailVisible(firstId: string, triggerRatio = 0.3) {
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const el = document.getElementById(firstId);
-    if (!el) return;
-
-    let raf = 0;
-    const update = () => {
-      raf = 0;
-      const triggerY = window.innerHeight * triggerRatio;
-      setVisible(el.getBoundingClientRect().top <= triggerY);
-    };
-    const onScroll = () => {
-      if (raf) return;
-      raf = requestAnimationFrame(update);
-    };
-
-    update();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      if (raf) cancelAnimationFrame(raf);
-    };
-  }, [firstId, triggerRatio]);
-
-  return visible;
-}
 
 function useDotSpan(dotCount: number, deps: unknown[]) {
   const containerRef = useRef<HTMLElement | null>(null);
@@ -112,14 +39,17 @@ function useDotSpan(dotCount: number, deps: unknown[]) {
 }
 
 export default function ScrollItems() {
-  const ids = navItems.map((n) => n.id);
-  const activeId = useActiveSection(ids);
-  const railVisible = useRailVisible(ids[0]);
+  // Sections no longer live in normal document flow, so "which one is
+  // active" comes from the shared controller, and the rail should only
+  // appear once ScrollSections is actually the thing filling the screen —
+  // not the moment the page mounts.
+  const { activeId, pinned, goTo } = useScrollController();
+  const railVisible = pinned;
 
   const { containerRef, dotRefs, span } = useDotSpan(navItems.length, [railVisible]);
 
   const handleClick = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    goTo(id);
   };
 
   return (

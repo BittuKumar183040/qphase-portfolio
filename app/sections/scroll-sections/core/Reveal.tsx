@@ -25,6 +25,15 @@ export const item: Variants = {
   },
 };
 
+export const heroSectionItem: Variants = {
+  hidden: { opacity: 0, y: 22 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 1, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
 // Standard viewport settings for whileInView: trigger once, a little before
 // the section is fully on screen so the motion reads as "arriving", not late.
 export const viewport = { once: false, amount: 0.3 } as const;

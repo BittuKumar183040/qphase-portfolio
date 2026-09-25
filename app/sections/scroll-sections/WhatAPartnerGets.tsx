@@ -7,22 +7,22 @@ export default function WhatAPartnerGets() {
     <>
       <motion.h2
         variants={item}
-        className="text-3xl font-medium tracking-tight text-[#3A362E] sm:text-4xl"
+        className="text-3xl font-medium tracking-tight text-black dark:text-white sm:text-4xl"
       >
         {ScrollSectionData.partner.headline}
       </motion.h2>
-      <motion.p variants={item} className="mt-5 leading-relaxed text-[#4A463C]">
+      <motion.p variants={item} className="mt-5 leading-relaxed text-black/90 dark:text-white/90">
         {ScrollSectionData.partner.body}
       </motion.p>
 
       <motion.div
         variants={item}
-        className="mt-10 divide-y divide-[#E4DFD3] border-y border-[#E4DFD3]"
+        className="mt-10 divide-y divide-black/20 dark:divide-gray-900 border-y border-black/40 dark:border-gray-700"
       >
         {ScrollSectionData.partner.items.map((thing) => (
           <div key={thing.title} className="py-5">
-            <p className="font-medium text-[#3A362E]">{thing.title}</p>
-            <p className="mt-1.5 leading-relaxed text-[#8B8577]">
+            <p className="font-medium text-black/80 dark:text-white/80">{thing.title}</p>
+            <p className="mt-1.5 leading-relaxed text-black/60 dark:text-white/60">
               {thing.body}
             </p>
           </div>

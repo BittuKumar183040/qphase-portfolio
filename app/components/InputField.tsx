@@ -1,4 +1,4 @@
-import { ResolvedItem } from "@/app/sections/CoreSection";
+import { ResolvedItem, revealRange } from "@/app/sections/CoreSection";
 import {
   motion,
   useTransform,
@@ -25,8 +25,7 @@ const InputField = ({
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
 
-  const start = Math.min(0.1 * index, 0.4);
-  const end = Math.min(start + 0.55, 1);
+  const { start, end } = revealRange(index);
 
   const opacity = useTransform(scrollYProgress, [start, end], [0, 1]);
   const scrollScale = useTransform(
@@ -68,7 +67,7 @@ const InputField = ({
 
   const sheenX = useTransform(springX, [-0.5, 0.5], [0, 100]);
   const sheenY = useTransform(springY, [-0.5, 0.5], [0, 100]);
-  const sheenBackground = useMotionTemplate`radial-gradient(180px circle at ${sheenX}% ${sheenY}%, rgba(255,255,255,0.35), transparent 70%)`;
+  const sheenBackground = useMotionTemplate`radial-gradient(140px circle at ${sheenX}% ${sheenY}%, rgba(255,255,255,0.35), transparent 70%)`;
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     const rect = cardRef.current?.getBoundingClientRect();
@@ -88,8 +87,8 @@ const InputField = ({
 
   return (
     <motion.div
-      style={{ opacity, scale: combinedScale, x, y, rotate: entranceRotate, perspective: 800, width: `${item.width}px`  }}
-      className={`flex items-center gap-2.5 ${isLeft ? "" : "flex-row-reverse"} ${item.className ?? ""}`}
+      style={{ opacity, scale: combinedScale, x, y, rotate: entranceRotate, perspective: 800, width: `${item.widthPx}px` }}
+      className={`flex items-center gap-2 ${isLeft ? "" : "flex-row-reverse"} ${item.className ?? ""}`}
     >
       <motion.div
         ref={cardRef}
@@ -97,23 +96,21 @@ const InputField = ({
         onPointerEnter={handlePointerEnter}
         onPointerLeave={handlePointerLeave}
         style={{ borderColor, rotateX, rotateY, z, transformStyle: "preserve-3d" }}
-        className="group relative min-w-0 flex-1 rounded-lg border bg-neutral-900/80 px-4 py-2.5 shadow-none backdrop-blur-sm transition-shadow duration-300 hover:shadow-[inset_0_2px_10px_rgba(255,255,255,0.12),0_1px_2px_rgba(255,255,255,0.04)] dark:bg-white/90 dark:shadow-sm dark:shadow-neutral-900/5 dark:hover:shadow-[inset_0_2px_10px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.04)] sm:px-4 sm:py-3"
+        className="group relative min-w-0 flex-1 rounded-md border bg-white px-2.5 py-1.5 shadow-none backdrop-blur-sm transition-shadow duration-300 hover:shadow-[inset_0_2px_10px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.04)] dark:bg-black/90 dark:shadow-sm dark:shadow-white/5 dark:hover:shadow-[inset_0_2px_10px_rgba(255,255,255,0.12),0_1px_2px_rgba(255,255,255,0.04)]"
       >
         {/* cursor-following sheen — purely decorative, sits above the content */}
         <motion.div
           aria-hidden
           style={{ background: sheenBackground, opacity: springHover }}
-          className="pointer-events-none absolute inset-0 rounded-lg mix-blend-soft-light dark:mix-blend-overlay"
+          className="pointer-events-none absolute inset-0 rounded-md mix-blend-soft-light dark:mix-blend-overlay"
         />
 
         {item.label && (
-          <div className="flex items-center gap-1.5">
-            <p className="m-0 font-medium tracking-[0.18em] text-neutral-400 dark:text-neutral-500">
-              {item.label}
-            </p>
-          </div>
+          <p className="m-0 font-medium text-[10px] leading-tight text-black/50 dark:text-white/50">
+            {item.label}
+          </p>
         )}
-        <p className="m-0 mt-1 font-sans text-sm font-medium leading-snug text-neutral-100 dark:text-neutral-800 sm:text-[0.95rem]">
+        <p className="m-0 mt-0.5 text-[11px] font-medium leading-snug text-black/80 dark:text-white">
           {item.title}
         </p>
       </motion.div>

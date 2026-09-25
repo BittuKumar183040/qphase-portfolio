@@ -7,7 +7,7 @@ export default function StatusAndAsk() {
     <>
       <motion.h2
         variants={item}
-        className="text-3xl font-medium tracking-tight text-[#3A362E] sm:text-4xl"
+        className="text-3xl font-medium tracking-tight text-black dark:text-white sm:text-4xl"
       >
         {ScrollSectionData.statusAndAsk.headline}
       </motion.h2>
@@ -17,7 +17,7 @@ export default function StatusAndAsk() {
           <motion.p
             key={p}
             variants={item}
-            className="leading-relaxed text-[#4A463C]"
+            className="leading-relaxed  text-black/60 dark:text-white/60"
           >
             {p}
           </motion.p>
@@ -29,9 +29,9 @@ export default function StatusAndAsk() {
         className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4"
       >
         {ScrollSectionData.statusAndAsk.status.map((s) => (
-          <div key={s.label} className="border border-[#E4DFD3] px-4 py-4">
-            <p className=" text-[#8B8577]">{s.label}</p>
-            <p className="mt-1 font-medium text-[#3A362E]">{s.value}</p>
+          <div key={s.label} className="border border-black/20 dark:border-gray-800 px-4 py-4">
+            <p className=" text-black/60 dark:text-white/60">{s.label}</p>
+            <p className="mt-1 font-medium text-black/60 dark:text-white/60">{s.value}</p>
           </div>
         ))}
       </motion.div>

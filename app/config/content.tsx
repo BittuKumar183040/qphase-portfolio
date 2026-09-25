@@ -40,11 +40,10 @@ export const pipelineSteps = {
 
 export const hero = {
   eyebrow: "QPhase × Rexcurx",
-  title: "QPhase",
-  tagline:
-    "The compiler that proves it didn't break your circuit — and tells you, with real numbers, how far the answer drifts on real hardware.",
-  pipelineNote:
-    "Every compile is checked against the original circuit's own physics before it reaches hardware.",
+  title: "Write Your Quantum Algorithm Once.",
+  static: ["Run", "Run", "Run on", "Run on"],
+  endTexts: ["Anywhere.", "Everywhere.", "Any Hardware.", "Any Architecture."],
+  pipelineNote: "Every compile is checked against the original circuit's own physics before it reaches hardware.",
   primaryCta: "See the Validation Data",
   secondaryCta: "Contact",
   footer: "RexCrux · September 2028",

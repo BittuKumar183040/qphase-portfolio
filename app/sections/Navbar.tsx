@@ -47,6 +47,19 @@ const Navbar = () => {
     setMobileOpen(false);
   }, [pathname]);
 
+  // entry animation — the navbar only ever mounts once Loading has already
+  // docked its logo, so this slide-down+fade is what the person actually
+  // sees appear right after that; keep it in sync with Loading's ~0.5s fade
+  useEffect(() => {
+    if (!navContainerRef.current) return;
+
+    gsap.fromTo(
+      navContainerRef.current,
+      { y: -24, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.7, ease: "power3.out"},
+    );
+  }, []);
+
   useEffect(() => {
     const handleVisibility = () => {
       if (document.hidden) setMobileOpen(false);
@@ -113,14 +126,17 @@ const Navbar = () => {
     moveIndicator(el);
   }, [pathname]);
 
-  return (
+  return (<>
+    <div className=" fixed top-1 left-19 z-50 ">
+      <BrandLogo />
+    </div>
     <nav
       ref={navContainerRef}
-      className="absolute flex justify-between inset-x-0 top-0 z-50 h-fit items-start gap-2"
+      className="fixed w-full backdrop-blur-xl bg-white/20 dark:bg-black/20 flex justify-end items-center inset-x-0 top-0 z-40 p-3 px-5 md:px-10 lg:px-20"
     >
-      <BrandLogo />
       <SlidingPillToggle />
     </nav>
+  </>
   );
 };
 

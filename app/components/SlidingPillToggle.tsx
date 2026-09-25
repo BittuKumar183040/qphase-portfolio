@@ -115,7 +115,7 @@ const SlidingPillToggle = () => {
   return (
     <div
       ref={containerRef}
-      className="relative hidden w-fit items-center gap-0.5 rounded-md p-1"
+      className="relative flex w-fit items-center gap-0.5 rounded-md p-1"
     >
       <div
         className="absolute top-1 left-1 rounded-md"

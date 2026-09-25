@@ -7,7 +7,7 @@ export default function DataMeasuredNotModeled() {
     <>
       <motion.h2
         variants={item}
-        className="text-3xl font-medium tracking-tight text-[#3A362E] sm:text-4xl"
+        className="text-3xl font-medium tracking-tight text-black dark:text-white sm:text-4xl"
       >
         {ScrollSectionData.dataSection.headline}
       </motion.h2>
@@ -17,7 +17,7 @@ export default function DataMeasuredNotModeled() {
           <motion.p
             key={p}
             variants={item}
-            className="leading-relaxed text-[#4A463C]"
+            className="leading-relaxed  text-black/80 dark:text-white/80"
           >
             {p}
           </motion.p>
@@ -26,15 +26,15 @@ export default function DataMeasuredNotModeled() {
 
       <motion.dl
         variants={item}
-        className="mt-10 divide-y divide-[#E4DFD3] border-y border-[#E4DFD3]"
+        className="mt-10 divide-y divide-black/20 dark:divide-gray-900 border-y border-black/20 dark:border-gray-800"
       >
         {ScrollSectionData.dataSection.logRows.map((row) => (
           <div
             key={row.key}
             className="flex items-baseline justify-between gap-6 py-3"
           >
-            <dt className="tracking-wide text-[#8B8577]">{row.key}</dt>
-            <dd className="text-right text-[#3A362E]">{row.value}</dd>
+            <dt className="tracking-wide  text-black/80 dark:text-white/80">{row.key}</dt>
+            <dd className="text-right  text-black/60 dark:text-white/60">{row.value}</dd>
           </div>
         ))}
       </motion.dl>

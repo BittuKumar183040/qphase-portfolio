@@ -12,19 +12,27 @@ const k2d = K2D({
 
 export const metadata: Metadata = {
   title: "QPhase",
-  description: "The compiler that proves it didn't break your circuit — and tells you, with real numbers, how far the answer drifts on real hardware.",
-  keywords: ["AI", "Quantum", "Finance", "Biology", "Research"]
+  description:
+    "The compiler that proves it didn't break your circuit — and tells you, with real numbers, how far the answer drifts on real hardware.",
+  keywords: ["AI", "Quantum", "Finance", "Biology", "Research"],
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${k2d.variable} h-dvh antialiased`}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${k2d.variable} h-dvh antialiased`}
+    >
       <body className="min-h-full w-full flex flex-col">
-        <Loading />
-        <SmoothScrollProvider>
-          {/* <CursorEffect /> */}
-          {children}
-        </SmoothScrollProvider>
+        <Loading>
+          <SmoothScrollProvider>
+            {/* <CursorEffect /> */}
+            {children}
+          </SmoothScrollProvider>
+        </Loading>
       </body>
     </html>
   );

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { hero } from "../config/content";
 
 const BrandLogo = () => {
 
@@ -19,6 +20,7 @@ const BrandLogo = () => {
           unoptimized
         />
       </div>
+      <p className=" text-xl font-quantico">{hero.eyebrow}</p>
     </Link>
   );
 };

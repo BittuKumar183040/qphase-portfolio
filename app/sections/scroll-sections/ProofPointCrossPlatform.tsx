@@ -7,22 +7,22 @@ export default function ProofPointCrossPlatform() {
     <>
       <motion.h2
         variants={item}
-        className="text-3xl font-medium tracking-tight text-[#3A362E] sm:text-4xl"
+        className="text-3xl font-medium tracking-tight text-black dark:text-white sm:text-4xl"
       >
         {ScrollSectionData.crossPlatform.headline}
       </motion.h2>
-      <motion.p variants={item} className="mt-5 leading-relaxed text-[#4A463C]">
+      <motion.p variants={item} className="mt-5 leading-relaxed text-black/80 dark:text-white/80">
         {ScrollSectionData.crossPlatform.body}
       </motion.p>
 
       <motion.div
         variants={item}
-        className="mt-10 grid grid-cols-1 gap-px overflow-hidden rounded-sm bg-[#E4DFD3] sm:grid-cols-2"
+        className="mt-10 grid grid-cols-1 gap-px overflow-hidden rounded-sm bg-white dark:bg-gray-900/40 sm:grid-cols-2"
       >
         {ScrollSectionData.crossPlatform.backends.map((b) => (
-          <div key={b.name} className="bg-[#F6F3EE] px-5 py-4">
-            <p className="font-medium text-[#3A362E]">{b.name}</p>
-            <p className="mt-1  text-[#8B8577]">{b.detail}</p>
+          <div key={b.name} className="bg-black/10 dark:bg-gray-900/30 px-5 py-4">
+            <p className="font-medium text-black/80 dark:text-white/80">{b.name}</p>
+            <p className="mt-1  text-black/60 dark:text-white/60">{b.detail}</p>
           </div>
         ))}
       </motion.div>

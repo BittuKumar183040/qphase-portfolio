@@ -1,61 +1,53 @@
-/* eslint-disable react-hooks/refs */
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
-import React, {
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { MotionPathPlugin } from "gsap/MotionPathPlugin";
-import { motion, animate, useMotionValue } from "framer-motion";
-import InputField from "../components/ui/InputField";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { motion, useScroll, useTransform, type MotionValue } from "framer-motion";
+import {
+  ReactFlow,
+  ReactFlowProvider,
+  Handle,
+  Position,
+  getBezierPath,
+  useReactFlow,
+  type Node,
+  type Edge,
+  type NodeProps,
+  type EdgeProps,
+} from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
 import { CORE_ITEMS } from "../config/coreItems";
+import InputField from "../components/InputField";
 
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
-}
+// Design-time reference canvas — item x/y % resolve against this, then xyflow's fitView scales
+// the whole thing (core, cards, lines) to fit the real container at any size.
+const CANVAS_WIDTH = 1072;
+const CANVAS_HEIGHT = 588;
+const CORE_CENTER = { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2 };
+const FIT_VIEW_OPTIONS = { padding: 0.3, duration: 0 };
 
-const SCROLL_START = "top 60%";
-const LINE_REVEAL_DELAY_MS = 500;
+// Tells xyflow to treat every node's `position` as its CENTER point (for both rendering and
+// fitView's bounding-box math), instead of its default top-left corner. This replaces manually
+// hacking `translate(-50%, -50%)` inside each node's own content — that approach fights xyflow's
+// own layout/measurement rather than actually centering against it.
+const NODE_ORIGIN: [number, number] = [0.5, 0.5];
 
-const INPUT_REVEAL_DURATION_S = 0.8;
-const POSITION_TRANSITION_S = 0.6;
+// How much further along the scroll (as a 0–1 fraction of the section's reveal distance) a line
+// waits before it starts drawing, relative to its own card's reveal window. 0 = line and card
+// move in perfect lockstep. Positive = line lags behind (draws after the card has already begun
+// appearing). Negative = line leads (starts drawing before the card appears, arriving as the
+// card fades in). Tune this one number to control the whole diagram's line timing.
+const LINE_ENTRY_DELAY = 0.4;
 
-const CORE_CENTER = { x: 536, y: 294 };
-
-const DARK_LINE_START = "rgba(0,0,0,1)";
-const DARK_LINE_END = "rgba(0,0,0,1)";
-
-// Tailwind-ish breakpoints: 0 = desktop (lg+), 1 = tablet (sm-lg), 2 = mobile (<sm)
 const TABLET_QUERY = "(max-width: 1023px)";
 const MOBILE_QUERY = "(max-width: 639px)";
 
-function isDarkMode(): boolean {
-  if (typeof document === "undefined") return false;
-  if (document.documentElement.classList.contains("dark")) return true;
-  if (document.documentElement.classList.contains("light")) return false;
-  return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
-}
-
-/** 0 = desktop, 1 = tablet, 2 = mobile. Reads live on the client, defaults to desktop for SSR. */
+/** 0 = desktop, 1 = tablet, 2 = mobile. */
 function useBreakpointIndex(): number {
-  const [index, setIndex] = useState(0);
-
+  const [bp, setBp] = useState(0);
   useEffect(() => {
     const mqTablet = window.matchMedia(TABLET_QUERY);
     const mqMobile = window.matchMedia(MOBILE_QUERY);
-
-    const update = () => {
-      if (mqMobile.matches) setIndex(2);
-      else if (mqTablet.matches) setIndex(1);
-      else setIndex(0);
-    };
-
+    const update = () => setBp(mqMobile.matches ? 2 : mqTablet.matches ? 1 : 0);
     update();
     mqTablet.addEventListener("change", update);
     mqMobile.addEventListener("change", update);
@@ -64,40 +56,24 @@ function useBreakpointIndex(): number {
       mqMobile.removeEventListener("change", update);
     };
   }, []);
-
-  return index;
+  return bp;
 }
 
 type Side = "left" | "right";
-type Point = { x: number; y: number };
-
-/** A value that differs per breakpoint: [desktop, tablet, mobile]. */
 export type Responsive<T> = [T, T, T];
 
 export interface CoreItem {
   id: string;
-  /** Only used to default the hover-drift direction (motionX/motionRotate) — no longer drives layout. */
+  /** Which side of the core this card sits on — also picks which handle the line attaches to. */
   side?: Side;
   title: string;
   label?: string;
   className?: string;
-
-  /** Position of the box as a % of the container, per breakpoint: [desktop, tablet, mobile]. */
+  /** Position as a % of the design canvas, per breakpoint: [desktop, tablet, mobile]. */
   x: Responsive<number>;
-  /** Position of the box as a % of the container, per breakpoint: [desktop, tablet, mobile]. */
   y: Responsive<number>;
-  /**
-   * Optional SVG path override (in the 0 0 1072 588 viewBox), per breakpoint. Leave a slot
-   * `undefined`/omit the array entirely to auto-trace a curve from the box's live x/y to the
-   * core — this is what keeps the line attached to the box as it moves. Only set this when you
-   * want a custom curve shape instead of the auto-trace.
-   */
-  width?: number | string;
-  path?: Partial<Responsive<string>>;
-
-  linePosition?: number;
-  lineDuration?: number;
-  lineEase?: string;
+  /** Card width in px. A single number applies at every breakpoint. */
+  width?: number | Responsive<number>;
   motionX?: number;
   motionY?: number;
   motionRotate?: number;
@@ -105,49 +81,36 @@ export interface CoreItem {
 }
 
 export interface ResolvedItem extends CoreItem {
-  d: string;
-  anchor: Point;
-  xPct: number;
-  yPct: number;
-  linePosition: number;
-  lineDuration: number;
-  lineEase: string;
+  anchor: { x: number; y: number };
+  widthPx: number;
   motionX: number;
   motionY: number;
   motionRotate: number;
   motionScale: number;
 }
 
-/** Converts the box's % position into the SVG's 0 0 1072 588 viewBox space. */
-function anchorFromPct(xPct: number, yPct: number): Point {
-  return { x: (xPct / 100) * 1072, y: (yPct / 100) * 588 };
+/** Scroll-progress window (both 0–1 fractions of the section's own reveal distance) that an
+ * item's card animates through, keyed by index. `delay` shifts the window later (positive) or
+ * earlier (negative) without changing its length — used to offset a line from its card. Cards
+ * call this with no delay; CoreSectionInner passes LINE_ENTRY_DELAY when building each edge. */
+export function revealRange(index: number, delay = 0): { start: number; end: number } {
+  const start = Math.min(0.1 * index, 0.4) + delay;
+  const end = Math.min(start + 0.55, 1);
+  return { start, end };
 }
 
-/** Traces a smooth curve from the box's anchor to the core center. */
-function autoTracePath(anchor: Point, core: Point = CORE_CENTER): string {
-  const dx = core.x - anchor.x;
-  const c1 = { x: anchor.x + dx * 0.55, y: anchor.y };
-  const c2 = { x: anchor.x + dx * 0.8, y: core.y + (anchor.y - core.y) * 0.15 };
-  // Same curve shape as before, wound in the opposite direction: starts at the core,
-  // ends at the box, so the draw-on animation and spark travel core -> input field.
-  return `M ${core.x} ${core.y} C ${c2.x} ${c2.y}, ${c1.x} ${c1.y}, ${anchor.x} ${anchor.y}`;
+function widthAt(width: CoreItem["width"], bp: number, fallback = 200): number {
+  return width == null ? fallback : Array.isArray(width) ? width[bp] : width;
 }
 
 function resolveItem(item: CoreItem, bp: number): ResolvedItem {
   const sideSign = item.side === "left" ? -1 : 1;
-  const xPct = item.x[bp];
-  const yPct = item.y[bp];
-  const anchor = anchorFromPct(xPct, yPct);
-  const override = item.path?.[bp];
   return {
     ...item,
-    d: override ?? autoTracePath(anchor),
-    anchor,
-    xPct,
-    yPct,
-    linePosition: item.linePosition ?? 0.15,
-    lineDuration: item.lineDuration ?? 1,
-    lineEase: item.lineEase ?? "power2.out",
+    // With NODE_ORIGIN = [0.5, 0.5], this anchor point is the CENTER of the rendered card —
+    // xyflow itself positions the node so its middle lands here, no CSS transform needed.
+    anchor: { x: (item.x[bp] / 100) * CANVAS_WIDTH, y: (item.y[bp] / 100) * CANVAS_HEIGHT },
+    widthPx: widthAt(item.width, bp),
     motionX: item.motionX ?? sideSign * 60,
     motionY: item.motionY ?? 0,
     motionRotate: item.motionRotate ?? sideSign * 3,
@@ -155,356 +118,211 @@ function resolveItem(item: CoreItem, bp: number): ResolvedItem {
   };
 }
 
+// Handles are functional connection points only — never shown.
+const HIDDEN_HANDLE: React.CSSProperties = {
+  opacity: 0,
+  width: 1,
+  height: 1,
+  border: "none",
+  background: "transparent",
+  pointerEvents: "none",
+};
+
+// Same as HIDDEN_HANDLE, but re-anchored to sit at the node's exact center instead of xyflow's
+// default edge-of-node placement (left:0 / right:0) — so every line leaving the core starts from
+// one shared point, regardless of which side it's headed to. Independent of NODE_ORIGIN: this
+// positions the handle *within* the node's own box, not the node itself against the canvas.
+const CENTER_HANDLE: React.CSSProperties = {
+  ...HIDDEN_HANDLE,
+  left: "50%",
+  top: "50%",
+  right: "auto",
+  bottom: "auto",
+  transform: "translate(-50%, -50%)",
+};
+
+type CardData = { item: ResolvedItem; index: number; revealProgress: MotionValue<number> };
+type CoreData = { coreImageSrc?: string };
+type EdgeData = { revealProgress: MotionValue<number>; start: number; end: number };
+
+/** InputField wrapped as an xyflow node. The Handle sits on whichever edge faces the core, so the
+ * line always attaches to the card's real rendered boundary — never a guessed anchor point.
+ * No positioning transform here: NODE_ORIGIN handles centering the node itself against xyflow's
+ * `position`, so this just needs to render its natural content. */
+function CardNode({ data }: NodeProps) {
+  const { item, index, revealProgress } = data as unknown as CardData;
+  return (
+    <div>
+      <Handle
+        type="target"
+        position={item.side === "left" ? Position.Right : Position.Left}
+        id="in"
+        style={HIDDEN_HANDLE}
+        isConnectable={false}
+      />
+      <InputField item={item} index={index} scrollYProgress={revealProgress} />
+    </div>
+  );
+}
+
+/** The pulsing core. Exposes left/right source handles, both anchored to the node's exact
+ * center, so every line leaving the core starts from one shared point. Like CardNode, no
+ * positioning transform here — NODE_ORIGIN centers the whole node against CORE_CENTER. */
+function CoreNode({ data }: NodeProps) {
+  const { coreImageSrc } = data as unknown as CoreData;
+  return (
+    <div className="relative">
+      <Handle type="source" position={Position.Left} id="core-left" style={CENTER_HANDLE} isConnectable={false} />
+      <Handle type="source" position={Position.Right} id="core-right" style={CENTER_HANDLE} isConnectable={false} />
+
+      <span className="absolute inset-0 animate-ping rounded-full border-2 border-white/20 dark:border-black/20 [animation-duration:2.6s]" />
+      <span className="absolute inset-0 animate-ping rounded-full border-2 border-white/20 dark:border-black/20 [animation-delay:0.6s] [animation-duration:2.6s]" />
+
+      <div className="relative size-50 overflow-hidden rounded-full bg-black [animation-duration:2.4s] md:size-32">
+        <img
+          src={coreImageSrc}
+          alt=""
+          className="absolute inset-0 m-auto h-[60%] w-[60%] object-contain object-center"
+        />
+      </div>
+    </div>
+  );
+}
+
+/** The curved connector. sourceX/Y and targetX/Y come from xyflow itself — measured from the real
+ * Handle elements on the core and the card — so the path always meets both ends exactly. Color
+ * flips with the site's dark mode via Tailwind's `dark:` variant, no JS theme detection needed. */
+function CurvedEdge({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition, data }: EdgeProps) {
+  const { revealProgress, start, end } = data as unknown as EdgeData;
+  const [d] = getBezierPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition, curvature: 0.4 });
+  // getBezierPath always starts the "d" at sourceX/Y (the core) and ends at targetX/Y (the card),
+  // so animating pathLength 0 -> 1 draws the line growing from the core out to the card.
+  const pathLength = useTransform(revealProgress, [start, end], [0, 1]);
+  return (
+    <motion.path
+      d={d}
+      fill="none"
+      strokeWidth={2.5}
+      className="stroke-white dark:stroke-black"
+      style={{ pathLength }}
+    />
+  );
+}
+
+const NODE_TYPES = { core: CoreNode, card: CardNode };
+const EDGE_TYPES = { curved: CurvedEdge };
+
 interface CoreSectionProps {
   coreImageSrc?: string;
-  coreLabel?: string;
   items?: CoreItem[];
 }
 
-export default function CoreSection({
-  coreImageSrc,
-  items = CORE_ITEMS,
-}: CoreSectionProps) {
+export default function CoreSection(props: CoreSectionProps) {
+  return (
+    <ReactFlowProvider>
+      <CoreSectionInner {...props} />
+    </ReactFlowProvider>
+  );
+}
+
+function CoreSectionInner({ coreImageSrc, items = CORE_ITEMS }: CoreSectionProps) {
   const sectionRef = useRef<HTMLElement>(null);
-  const svgRef = useRef<SVGSVGElement>(null);
-  const coreRef = useRef<HTMLDivElement>(null);
-  const ringRefs = useRef<(HTMLDivElement | null)[]>([]);
-
   const bp = useBreakpointIndex();
+  const { fitView } = useReactFlow();
 
-  const resolvedItems = useMemo(
-    () => items.map((item) => resolveItem(item, bp)),
-    [items, bp],
+  // Fades the whole diagram in as the section scrolls into view — no ScrollTrigger/GSAP needed.
+  const { scrollYProgress: revealProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start 90%", "start 10%"],
+  });
+
+  const resolvedItems = useMemo(() => items.map((item) => resolveItem(item, bp)), [items, bp]);
+
+  const nodes = useMemo<Node[]>(
+    () => [
+      {
+        id: "core",
+        type: "core",
+        position: CORE_CENTER,
+        data: { coreImageSrc },
+        draggable: false,
+        selectable: false,
+      },
+      ...resolvedItems.map(
+        (item, index): Node => ({
+          id: item.id,
+          type: "card",
+          position: item.anchor,
+          data: { item, index, revealProgress },
+          draggable: false,
+          selectable: false,
+        }),
+      ),
+    ],
+    [resolvedItems, coreImageSrc, revealProgress],
   );
 
-  const revealProgress = useMotionValue(0);
-  const resolvedItemsRef = useRef(resolvedItems);
-  resolvedItemsRef.current = resolvedItems;
+  const edges = useMemo<Edge[]>(
+    () =>
+      resolvedItems.map(
+        (item, index): Edge => ({
+          id: `edge-${item.id}`,
+          source: "core",
+          sourceHandle: item.side === "left" ? "core-left" : "core-right",
+          target: item.id,
+          targetHandle: "in",
+          type: "curved",
+          data: { revealProgress, ...revealRange(index, LINE_ENTRY_DELAY) },
+          selectable: false,
+        }),
+      ),
+    [resolvedItems, revealProgress],
+  );
 
-  // Rebuilds the line-drawing setup whenever the resolved paths change (i.e. on breakpoint
-  // change), the same way it already rebuilt on dark-mode toggle — the path geometry (length,
-  // dash offsets) is only valid for the paths that were current when it was captured.
-  useLayoutEffect(() => {
-    if (!sectionRef.current || !svgRef.current) return;
-
-    let lineRevealTimeoutId: number | undefined;
-    let leaveDebounceId: number | undefined;
-    let linesTl: gsap.core.Timeline | null = null;
-
-    const setup = () => {
-      const dark = isDarkMode();
-
-      const ctx = gsap.context(() => {
-        const lines = resolvedItemsRef.current
-          .map((item) => {
-            const path = svgRef.current!.querySelector<SVGPathElement>(
-              `[data-line-id="${item.id}"]`,
-            );
-            const spark = svgRef.current!.querySelector<SVGCircleElement>(
-              `[data-spark-id="${item.id}"]`,
-            );
-            if (!path) return null;
-
-            const length = path.getTotalLength();
-            const strokeValue = dark
-              ? `url(#line-gradient-${item.id})`
-              : DARK_LINE_START;
-
-            gsap.set(path, {
-              strokeDasharray: length,
-              strokeDashoffset: length,
-              stroke: strokeValue,
-            });
-            if (spark) gsap.set(spark, { opacity: 0 });
-
-            return { item, path, spark, length };
-          })
-          .filter(
-            (
-              l,
-            ): l is {
-              item: ResolvedItem;
-              path: SVGPathElement;
-              spark: SVGCircleElement | null;
-              length: number;
-            } => l !== null,
-          );
-
-        const drawLines = () => {
-          linesTl?.kill();
-          const tl = gsap.timeline();
-          linesTl = tl;
-
-          lines.forEach(({ item, path, spark }) => {
-            tl.to(
-              path,
-              dark
-                ? {
-                    strokeDashoffset: 0,
-                    duration: item.lineDuration,
-                    ease: item.lineEase,
-                  }
-                : {
-                    strokeDashoffset: 0,
-                    stroke: DARK_LINE_END,
-                    duration: item.lineDuration,
-                    ease: item.lineEase,
-                  },
-              item.linePosition,
-            );
-
-            if (spark) {
-              tl.to(spark, { opacity: 1, duration: 0.05 }, item.linePosition)
-                .to(
-                  spark,
-                  {
-                    motionPath: {
-                      path,
-                      align: path,
-                      alignOrigin: [0.5, 0.5],
-                    },
-                    duration: item.lineDuration,
-                    ease: item.lineEase,
-                  },
-                  item.linePosition,
-                )
-                .to(
-                  spark,
-                  { opacity: 0, duration: 0.08 },
-                  item.linePosition + item.lineDuration - 0.08,
-                );
-            }
-          });
-        };
-
-        const hideLines = () => {
-          window.clearTimeout(lineRevealTimeoutId);
-          linesTl?.kill();
-          linesTl = null;
-
-          lines.forEach(({ path, spark, length }) => {
-            gsap.to(path, {
-              strokeDashoffset: length,
-              duration: 0.4,
-              ease: "power1.in",
-              overwrite: true,
-            });
-            if (spark) gsap.to(spark, { opacity: 0, duration: 0.2 });
-          });
-        };
-
-        const revealSection = () => {
-          window.clearTimeout(leaveDebounceId);
-          window.clearTimeout(lineRevealTimeoutId);
-          animate(revealProgress, 1, {
-            duration: INPUT_REVEAL_DURATION_S,
-            ease: "easeOut",
-          }).then(() => {
-            lineRevealTimeoutId = window.setTimeout(
-              drawLines,
-              LINE_REVEAL_DELAY_MS,
-            );
-          });
-        };
-
-        const hideSection = () => {
-          animate(revealProgress, 0, {
-            duration: INPUT_REVEAL_DURATION_S,
-            ease: "easeOut",
-          });
-          hideLines();
-        };
-
-        ScrollTrigger.create({
-          trigger: sectionRef.current,
-          start: SCROLL_START,
-          invalidateOnRefresh: true,
-          onEnter: revealSection,
-          onLeaveBack: () => {
-            window.clearTimeout(leaveDebounceId);
-            leaveDebounceId = window.setTimeout(hideSection, 150);
-          },
-        });
-
-        // If we're rebuilding because the breakpoint just changed (not the initial mount)
-        // and the section is already on screen, redraw immediately instead of waiting for
-        // the next scroll crossing — keeps the breakpoint switch feeling smooth/live.
-        const rect = sectionRef.current!.getBoundingClientRect();
-        const alreadyInView =
-          rect.top < window.innerHeight * 0.6 && rect.bottom > 0;
-        if (alreadyInView) revealSection();
-      }, sectionRef);
-
-      return ctx;
-    };
-
-    let ctx = setup();
-    let currentlyDark = isDarkMode();
-
-    const handleLoadOrResize = () => ScrollTrigger.refresh();
-    window.addEventListener("load", handleLoadOrResize);
-    window.addEventListener("resize", handleLoadOrResize);
-
-    const themeObserver = new MutationObserver(() => {
-      const nowDark = isDarkMode();
-      if (nowDark === currentlyDark) return;
-      currentlyDark = nowDark;
-
-      window.clearTimeout(lineRevealTimeoutId);
-      window.clearTimeout(leaveDebounceId);
-      ctx.revert();
-      ScrollTrigger.getAll().forEach((st) => st.kill());
-      ctx = setup();
-      ScrollTrigger.refresh();
-    });
-    themeObserver.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-
-    return () => {
-      window.clearTimeout(lineRevealTimeoutId);
-      window.clearTimeout(leaveDebounceId);
-      ctx.revert();
-      themeObserver.disconnect();
-      window.removeEventListener("load", handleLoadOrResize);
-      window.removeEventListener("resize", handleLoadOrResize);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bp]);
-
-  useLayoutEffect(() => {
-    if (!coreRef.current) return;
-
-    const ctx = gsap.context(() => {
-      gsap.to(coreRef.current, {
-        scale: 1,
-        duration: 2.4,
-        ease: "sine.inOut",
-        repeat: -1,
-        yoyo: true,
-      });
-
-      ringRefs.current.forEach((ring, i) => {
-        if (!ring) return;
-        gsap.fromTo(
-          ring,
-          { scale: 1, opacity: 0.05 },
-          {
-            scale: 4,
-            opacity: 0,
-            duration: 2.6,
-            ease: "power1.out",
-            repeat: -1,
-            delay: i * 0.5,
-          },
-        );
-      });
-    }, coreRef);
-
-    return () => ctx.revert();
-  }, []);
+  // Keeps the diagram framed to its container at any size — continuous, not just the three
+  // breakpoints above (those only change the layout's shape).
+  useEffect(() => {
+    fitView(FIT_VIEW_OPTIONS);
+  }, [bp, fitView]);
 
   useEffect(() => {
-    return () => {
-      ScrollTrigger.getAll().forEach((st) => st.kill());
-    };
-  }, []);
+    const el = sectionRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => fitView(FIT_VIEW_OPTIONS));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [fitView]);
 
   return (
+    // Below `md`: fixed width, height derived from the design canvas' own aspect ratio (so the
+    // diagram's proportions stay identical across phones/tablets instead of being squashed by
+    // whatever height the device happens to have), capped at the dynamic viewport height so it
+    // never forces the page taller than the visible screen. At `md` and up: revert to the
+    // previous parent-controlled h-full/w-full sizing.
     <section
       ref={sectionRef}
-      className="relative flex min-h-screen w-full items-center justify-center bg-transparent px-6 py-16"
+      className="relative aspect-1072/588 max-h-dvh w-full md:aspect-auto md:h-full md:max-h-none"
     >
-      <div className="relative aspect-1072/588 w-full max-w-275">
-        <svg
-          ref={svgRef}
-          viewBox="0 0 1072 588"
-          preserveAspectRatio="xMidYMid meet"
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 h-full w-full"
-        >
-          <defs>
-            {resolvedItems.map((item) => (
-              <linearGradient
-                key={`grad-${item.id}`}
-                id={`line-gradient-${item.id}`}
-                gradientUnits="userSpaceOnUse"
-                x1={CORE_CENTER.x}
-                y1={CORE_CENTER.y}
-                x2={item.anchor.x}
-                y2={item.anchor.y}
-              >
-                <stop
-                  offset="0%"
-                  stopColor="var(--core-line-color, #151515)"
-                  stopOpacity="0.6"
-                />
-                <stop offset="100%" stopColor="#151515" stopOpacity="0.8" />
-              </linearGradient>
-            ))}
-          </defs>
-
-          {resolvedItems.map((item) => (
-            <React.Fragment key={item.id}>
-              <path
-                data-line-id={item.id}
-                d={item.d}
-                fill="none"
-                strokeWidth={2.5}
-                strokeLinecap="round"
-              />
-            </React.Fragment>
-          ))}
-        </svg>
-
-        {/* Freely-positioned items: each box sits at (xPct, yPct)% of the container and
-            glides to its new spot with framer-motion whenever xPct/yPct change — whether
-            that's a breakpoint switch or you editing the config live. */}
-        {resolvedItems.map((item, i) => (
-          <motion.div
-            key={item.id}
-            className={`absolute ${item.className ?? ""}`}
-            style={{ transform: "translate(-50%, -50%)" }}
-            animate={{ left: `${item.xPct}%`, top: `${item.yPct}%` }}
-            transition={{
-              duration: POSITION_TRANSITION_S,
-              ease: [0.22, 1, 0.36, 1],
-            }}
-          >
-            <InputField
-              item={item}
-              index={i}
-              scrollYProgress={revealProgress}
-            />
-          </motion.div>
-        ))}
-
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-          <div
-            ref={(el) => void (ringRefs.current[0] = el)}
-            className="pointer-events-none absolute inset-0 rounded-full border-2 border-white/20"
-          />
-          <div
-            ref={(el) => void (ringRefs.current[1] = el)}
-            className="pointer-events-none absolute inset-0 rounded-full border-2 border-white/20"
-          />
-
-          <div
-            ref={coreRef}
-            className="relative flex size-50 items-center bg-black rounded-full justify-center overflow-visible"
-          >
-            <img src={coreImageSrc} alt="" className="size-50 object-contain" />
-
-            <ul
-              className="absolute left-1/2 top-full mt-6 flex w-fll -translate-x-1/2 flex-col justify-center h-full
-               gap-2 overflow-auto text-lg text-black
-               max-h-60"
-            >
-            </ul>
-          </div>
-        </div>
-      </div>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        nodeTypes={NODE_TYPES}
+        edgeTypes={EDGE_TYPES}
+        nodeOrigin={NODE_ORIGIN}
+        fitView
+        fitViewOptions={FIT_VIEW_OPTIONS}
+        minZoom={0.05}
+        maxZoom={2}
+        nodesDraggable={false}
+        nodesConnectable={false}
+        elementsSelectable={false}
+        panOnDrag={false}
+        panOnScroll={false}
+        zoomOnScroll={false}
+        zoomOnPinch={false}
+        zoomOnDoubleClick={false}
+        proOptions={{ hideAttribution: true }}
+      />
     </section>
   );
 }
