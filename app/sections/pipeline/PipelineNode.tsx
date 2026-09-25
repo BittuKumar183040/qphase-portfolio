@@ -20,20 +20,19 @@ export function PipelineNode({ data }: NodeProps<PipelineNode>) {
       className={[
         "relative w-full rounded-xl border px-4 py-3.5",
         "bg-white text-black dark:bg-black dark:text-white",
-        "border-black/15 dark:border-white/15",
         "transition-colors duration-300",
         data.accent
-          ? "border--[#733d22]/50 dark:border-[#733d22]/50"
-          : "hover:border-black/30 dark:hover:border-white/30",
+          ? "border-2 border-[#733d22]/50"
+          : " border hover:border-black/30 dark:hover:border-white/30 border-black/15 dark:border-white/15",
       ].join(" ")}
     >
       <Handle
         type="target"
         position={Position.Left}
-        className="!h-1.5 !w-1.5 !border-0 !bg-black/25 dark:!bg-white/25"
+        className={`!h-1.5 !w-1.5 !border-0 !bg-black/25 dark:!bg-white/25 `}
       />
 
-      <div className="flex items-start gap-3">
+      <div className={`flex items-start gap-3 `}>
         <div
           className={[
             "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[8px] font-medium",
@@ -46,7 +45,7 @@ export function PipelineNode({ data }: NodeProps<PipelineNode>) {
         </div>
 
         <div className="min-w-0">
-          <p className="truncate text-xs font-medium tracking-tight sm:text-sm">
+          <p className={`truncate ${data.accent ? "text-[#733d22] font-bold text-md" : "font-medium text-xs"}  tracking-tight sm:text-sm`}>
             {data.label}
           </p>
 

@@ -1,5 +1,4 @@
 import ProofPointVerification from "../sections/ProofPointVerification";
-import WhatAPartnerGets from "../sections/scroll-sections/WhatAPartnerGets";
 
 export interface NavItem {
   id: string;

@@ -17,8 +17,7 @@ export const baseNodes: PipelineNode[] = [
     data: {
       number: "01",
       label: "Problem Input",
-      description:
-        "Write the algorithm once without targeting a specific quantum chip.",
+      description: "Write the algorithm once without targeting a specific quantum chip.",
     },
   },
   {
@@ -28,9 +27,7 @@ export const baseNodes: PipelineNode[] = [
     data: {
       number: "02",
       label: "Pre-Processing",
-      description:
-        "QPhase Intermediate Representation",
-      accent: true,
+      description: "QPhase Intermediate Representation",
     },
   },
   {
@@ -40,8 +37,7 @@ export const baseNodes: PipelineNode[] = [
     data: {
       number: "03",
       label: "QPhase / Compiler ",
-      description:
-        "Quantum Execution Engine",
+      description: "Quantum Execution Engine",
       accent: true,
     },
   },
@@ -52,8 +48,7 @@ export const baseNodes: PipelineNode[] = [
     data: {
       number: "04A",
       label: "Superconducting",
-      description:
-        "Optimized for superconducting quantum processors.",
+      description: "Optimized for superconducting quantum processors.",
     },
   },
   {
@@ -63,8 +58,7 @@ export const baseNodes: PipelineNode[] = [
     data: {
       number: "04B",
       label: "Photonic",
-      description:
-        "Translated for photonic quantum architectures.",
+      description: "Translated for photonic quantum architectures.",
     },
   },
   {
@@ -74,9 +68,7 @@ export const baseNodes: PipelineNode[] = [
     data: {
       number: "05",
       label: "Post-Process Engine",
-      description:
-        "Do processing operation includes Backend Results, Normalization, Metrics Engine, Risk Engine, Exeution Report",
-      accent: true,
+      description: "Do processing operation includes Backend Results, Normalization, Metrics Engine, Risk Engine, Exeution Report",
     },
   },
   {
@@ -86,9 +78,7 @@ export const baseNodes: PipelineNode[] = [
     data: {
       number: "06",
       label: "Application Integration",
-      description:
-        "Allowing to work on different application such as FoldShild and Omega Signal.",
-      accent: true,
+      description: "Allowing to work on different application such as FoldShild and Omega Signal.",
     },
   },
 ];
