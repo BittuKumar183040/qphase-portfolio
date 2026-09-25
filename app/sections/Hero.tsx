@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { container, heroSectionItem } from "./scroll-sections/core/Reveal";
 import { hero } from "../config/content";
 import TypingText from "../components/TypingText";
+import { CONTACT_URL } from "./ContactUs";
 
 type SymbolTone = "brand" | "cool";
 interface QuantumSymbol {
@@ -152,7 +153,10 @@ const Hero = () => {
         {hero.pipelineNote}
       </motion.p>
 
-      <motion.div
+      <motion.a
+        href={CONTACT_URL}
+        target="_blank"
+        rel="noopener noreferrer"
         variants={heroSectionItem}
         className="mt-8 flex flex-wrap items-center gap-4 sm:mt-10 sm:gap-6"
       >
@@ -162,7 +166,7 @@ const Hero = () => {
             →
           </span>
         </button>
-      </motion.div>
+      </motion.a>
 
       {/* scattered, low-opacity quantum/math notation, drifting slowly */}
       <div aria-hidden className="pointer-events-none absolute inset-0">

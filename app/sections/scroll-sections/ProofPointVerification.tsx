@@ -11,18 +11,28 @@ export default function ProofPointVerification() {
       >
         {ScrollSectionData.verification.headline}
       </motion.h2>
-      <motion.p variants={item} className="mt-5 leading-relaxed text-black dark:text-white/80">
+      <motion.p
+        variants={item}
+        className="mt-5 leading-relaxed text-black dark:text-white/80"
+      >
         {ScrollSectionData.verification.body}
       </motion.p>
 
-      <motion.div variants={item} className="mt-10 grid grid-cols-2 gap-3">
+      <motion.div
+        variants={item}
+        className="mt-10 grid grid-cols-2 gap-2.5 sm:gap-3"
+      >
         {ScrollSectionData.verification.stats.map((stat) => (
           <div
             key={stat.label}
-            className="rounded-sm bg-black/10 dark:bg-gray-900/30 border border-black/20 dark:border-gray-800  px-5 py-5 text-black dark:text-white"
+            className="rounded-sm border border-black/10 bg-black/3 px-4 py-4 text-black dark:border-white/10 dark:bg-white/5 dark:text-white sm:px-5 sm:py-5"
           >
-            <p className="text-2xl">{stat.value}</p>
-            <p className="mt-2 leading-snug opacity-85">{stat.label}</p>
+            <p className="text-lg font-medium tracking-tight sm:text-xl lg:text-2xl">
+              {stat.value}
+            </p>
+            <p className="mt-2 text-xs leading-snug text-black/60 dark:text-white/60 sm:text-sm">
+              {stat.label}
+            </p>
           </div>
         ))}
       </motion.div>

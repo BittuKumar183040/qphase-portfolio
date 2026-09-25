@@ -57,7 +57,7 @@ const Loading = ({ children }: { children?: React.ReactNode }) => {
             <motion.div
               layout
               className={
-                isLoading ? "relative size-18" : "absolute left-0 top-0 size-12"
+                isLoading ? "relative size-18" : "absolute top-1 md:left-19 left-2 size-12"
               }
               transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
               onLayoutAnimationComplete={() => {

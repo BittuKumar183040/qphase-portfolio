@@ -26,12 +26,19 @@ export default function StatusAndAsk() {
 
       <motion.div
         variants={item}
-        className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4"
+        className="mt-10 grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3"
       >
         {ScrollSectionData.statusAndAsk.status.map((s) => (
-          <div key={s.label} className="border border-black/20 dark:border-gray-800 px-4 py-4">
-            <p className=" text-black/60 dark:text-white/60">{s.label}</p>
-            <p className="mt-1 font-medium text-black/60 dark:text-white/60">{s.value}</p>
+          <div
+            key={s.label}
+            className="border border-black/10 px-4 py-4 dark:border-white/10"
+          >
+            <p className="text-xs text-black/50 dark:text-white/50 sm:text-sm">
+              {s.label}
+            </p>
+            <p className="mt-1 text-sm font-medium text-black dark:text-white sm:text-base">
+              {s.value}
+            </p>
           </div>
         ))}
       </motion.div>

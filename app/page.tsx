@@ -1,7 +1,9 @@
 import BackgroundGrid from "./components/BackgroundGrid";
 import ParticleWaveTerrain from "./components/canvas/ParticleWave";
 import { ContainerScroll } from "./components/ui/container-scroll-animation";
+import ContactUs from "./sections/ContactUs";
 import CoreSection from "./sections/CoreSection";
+import Footer from "./sections/Footer";
 import Hero from "./sections/Hero";
 import Navbar from "./sections/Navbar";
 import ProblemSolution from "./sections/ProblemSolution";
@@ -11,7 +13,7 @@ import WhoItsFor from "./sections/WhoItsFor";
 
 export default function Home() {
   return (
-    <div className=" text-black dark:text-white overflow-x-hidden ">
+    <div className=" text-black dark:text-white overflow-x-hidden">
       <Navbar />
       <section id="home" className="relative flex w-full h-dvh">
         <Hero />
@@ -29,6 +31,8 @@ export default function Home() {
       <ProblemSolution />
       <QphasePipeline />
       <WhoItsFor />
+      <ContactUs />
+      <Footer />
     </div>
   );
 }

@@ -37,17 +37,17 @@ const HorizontalEntity = ({
 
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         <div className="flex items-start justify-between gap-6">
-          <h3 className="text-lg font-medium tracking-tight text-black/60 transition-colors duration-300 group-hover:text-black dark:text-white/60 dark:group-hover:text-white md:text-xl lg:text-2xl">
+          <h3 className="text-md font-medium tracking-tight text-black/60 transition-colors duration-300 group-hover:text-black dark:text-white/60 dark:group-hover:text-white md:text-md lg:text-xl">
             {title}
           </h3>
 
           {/* index badge */}
-          <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-black/20 text-xs font-medium text-black/50 transition-colors duration-300 group-hover:border-black/60 group-hover:text-black dark:border-white/20 dark:text-white/50 dark:group-hover:border-white/60 dark:group-hover:text-white">
+          <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-black/20 text-xs text-black/50 transition-colors duration-300 group-hover:border-black/60 group-hover:text-black dark:border-white/20 dark:text-white/50 dark:group-hover:border-white/60 dark:group-hover:text-white">
             {String(index + 1).padStart(2, "0")}
           </span>
         </div>
 
-        <p className="max-w-xl text-sm leading-relaxed text-black/50 transition-colors duration-300 group-hover:text-black/70 dark:text-white/50 dark:group-hover:text-white/70 md:text-base">
+        <p className="max-w-xl text-xs leading-relaxed text-black/50 transition-colors duration-300 group-hover:text-black/70 dark:text-white/50 dark:group-hover:text-white/70 md:text-sm">
           {desc}
         </p>
       </div>
