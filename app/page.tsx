@@ -23,7 +23,7 @@ export default function Home() {
         <ParticleWaveTerrain />
       </section>
       
-      <section className="bg-white dark:bg-black ">
+      <section className="bg-white dark:bg-black">
         <ContainerScroll titleComponent="">
           <CoreSection coreImageSrc="/asset/Logo.svg" />
         </ContainerScroll>
