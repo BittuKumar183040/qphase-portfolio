@@ -39,7 +39,7 @@ export const baseNodes: PipelineNode[] = [
     position: { x: 0, y: 0 },
     data: {
       number: "03",
-      label: "Compiler",
+      label: "QPhase / Compiler ",
       description:
         "Quantum Execution Engine",
       accent: true,

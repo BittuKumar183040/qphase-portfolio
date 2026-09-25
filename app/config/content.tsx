@@ -34,7 +34,7 @@ export const hero = {
 export const ScrollSectionData = {
   verification: {
     headline: "Early Benchmark Results",
-    body: "13 real benchmark circuits, compiled cross-checked between inhouse noise simulator and super conductive emulator.",
+    body: "13 real benchmark circuits, compiled cross-checked between in-house noise simulator and super conductive emulator.",
     stats: [
       {
         value: "13/13",

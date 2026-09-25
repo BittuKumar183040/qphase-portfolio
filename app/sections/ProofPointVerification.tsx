@@ -32,7 +32,7 @@ const verification = {
       line1: "Proof, not",
       line2: "a promise",
     },
-    body: "13 real benchmark circuits, compiled cross-checked between inhouse noise simulator and super conductive emulator.",
+    body: "13 real benchmark circuits, compiled cross-checked between in-house noise simulator and super conductive emulator.",
     stats: [
       {
         value: "13/13",

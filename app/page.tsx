@@ -27,8 +27,8 @@ export default function Home() {
         </ContainerScroll>
       </section>
       <ProblemSolution />
-      <QphasePipeline />
       <ProgressTimeline />
+      <QphasePipeline />
 
       {/* <ScrollSections /> */}
       <ProofPointVerification />
