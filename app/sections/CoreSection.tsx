@@ -19,23 +19,29 @@ import { CORE_ITEMS } from "../config/coreItems";
 import InputField from "../components/InputField";
 
 // Design-time reference canvas — item x/y % resolve against this, then xyflow's fitView scales
-// the whole thing (core, cards, lines) to fit the real container at any size.
-const CANVAS_WIDTH = 1072;
-const CANVAS_HEIGHT = 588;
-const CORE_CENTER = { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2 };
-const FIT_VIEW_OPTIONS = { padding: 0.3, duration: 0 };
+// the whole thing (core, cards, lines) to fit the real container at any size. One canvas per
+// breakpoint: mobile's is taller-than-wide (rather than reusing desktop's wide ratio) so the same
+// x/y percentages naturally spread further apart vertically on a phone. Keep each entry's ratio
+// in sync with the matching `sm:`/`lg:` aspect-ratio class on the section below, or fitView will
+// letterbox instead of filling the container.
+const CANVAS_SIZES: [
+  { width: number; height: number },
+  { width: number; height: number },
+  { width: number; height: number },
+] = [
+  { width: 1072, height: 588 }, // desktop
+  { width: 980, height: 680 }, // tablet
+  { width: 720, height: 1180 }, // mobile — taller than wide
+];
+const FIT_VIEW_OPTIONS = { padding: 0.25, duration: 0 };
 
 // Tells xyflow to treat every node's `position` as its CENTER point (for both rendering and
-// fitView's bounding-box math), instead of its default top-left corner. This replaces manually
-// hacking `translate(-50%, -50%)` inside each node's own content — that approach fights xyflow's
-// own layout/measurement rather than actually centering against it.
+// fitView's bounding-box math), instead of its default top-left corner.
 const NODE_ORIGIN: [number, number] = [0.5, 0.5];
 
 // How much further along the scroll (as a 0–1 fraction of the section's reveal distance) a line
 // waits before it starts drawing, relative to its own card's reveal window. 0 = line and card
-// move in perfect lockstep. Positive = line lags behind (draws after the card has already begun
-// appearing). Negative = line leads (starts drawing before the card appears, arriving as the
-// card fades in). Tune this one number to control the whole diagram's line timing.
+// move in perfect lockstep. Positive = line lags behind. Negative = line leads.
 const LINE_ENTRY_DELAY = 0.4;
 
 const TABLET_QUERY = "(max-width: 1023px)";
@@ -64,7 +70,8 @@ export type Responsive<T> = [T, T, T];
 
 export interface CoreItem {
   id: string;
-  /** Which side of the core this card sits on — also picks which handle the line attaches to. */
+  /** Which side the card starts on for its entrance slide — no longer used to pick which line
+   * handle it connects through (that's now geometric, see `nearestSide`). */
   side?: Side;
   title: string;
   label?: string;
@@ -91,8 +98,7 @@ export interface ResolvedItem extends CoreItem {
 
 /** Scroll-progress window (both 0–1 fractions of the section's own reveal distance) that an
  * item's card animates through, keyed by index. `delay` shifts the window later (positive) or
- * earlier (negative) without changing its length — used to offset a line from its card. Cards
- * call this with no delay; CoreSectionInner passes LINE_ENTRY_DELAY when building each edge. */
+ * earlier (negative) without changing its length — used to offset a line from its card. */
 export function revealRange(index: number, delay = 0): { start: number; end: number } {
   const start = Math.min(0.1 * index, 0.4) + delay;
   const end = Math.min(start + 0.55, 1);
@@ -104,18 +110,37 @@ function widthAt(width: CoreItem["width"], bp: number, fallback = 200): number {
 }
 
 function resolveItem(item: CoreItem, bp: number): ResolvedItem {
+  const { width: canvasWidth, height: canvasHeight } = CANVAS_SIZES[bp];
   const sideSign = item.side === "left" ? -1 : 1;
   return {
     ...item,
-    // With NODE_ORIGIN = [0.5, 0.5], this anchor point is the CENTER of the rendered card —
-    // xyflow itself positions the node so its middle lands here, no CSS transform needed.
-    anchor: { x: (item.x[bp] / 100) * CANVAS_WIDTH, y: (item.y[bp] / 100) * CANVAS_HEIGHT },
+    anchor: { x: (item.x[bp] / 100) * canvasWidth, y: (item.y[bp] / 100) * canvasHeight },
     widthPx: widthAt(item.width, bp),
     motionX: item.motionX ?? sideSign * 60,
     motionY: item.motionY ?? 0,
     motionRotate: item.motionRotate ?? sideSign * 3,
     motionScale: item.motionScale ?? 0.85,
   };
+}
+
+type CardinalSide = "top" | "bottom" | "left" | "right";
+const CARDINAL_SIDES: CardinalSide[] = ["top", "bottom", "left", "right"];
+const HANDLE_POSITION: Record<CardinalSide, Position> = {
+  top: Position.Top,
+  bottom: Position.Bottom,
+  left: Position.Left,
+  right: Position.Right,
+};
+
+/** Picks whichever of the 4 cardinal sides points most directly from `from` toward `to`. Used to
+ * choose, per breakpoint, which of a node's 4 handles an edge should actually connect through —
+ * so a card that ends up above/below the core (as on mobile's taller canvas) attaches via its
+ * top/bottom handle instead of always being forced through left/right. */
+function nearestSide(from: { x: number; y: number }, to: { x: number; y: number }): CardinalSide {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  if (Math.abs(dx) >= Math.abs(dy)) return dx >= 0 ? "right" : "left";
+  return dy >= 0 ? "bottom" : "top";
 }
 
 // Handles are functional connection points only — never shown.
@@ -129,9 +154,8 @@ const HIDDEN_HANDLE: React.CSSProperties = {
 };
 
 // Same as HIDDEN_HANDLE, but re-anchored to sit at the node's exact center instead of xyflow's
-// default edge-of-node placement (left:0 / right:0) — so every line leaving the core starts from
-// one shared point, regardless of which side it's headed to. Independent of NODE_ORIGIN: this
-// positions the handle *within* the node's own box, not the node itself against the canvas.
+// default edge-of-node placement — so every line leaving the core starts from one shared point
+// regardless of which of its 4 handles ends up used.
 const CENTER_HANDLE: React.CSSProperties = {
   ...HIDDEN_HANDLE,
   left: "50%",
@@ -145,35 +169,46 @@ type CardData = { item: ResolvedItem; index: number; revealProgress: MotionValue
 type CoreData = { coreImageSrc?: string };
 type EdgeData = { revealProgress: MotionValue<number>; start: number; end: number };
 
-/** InputField wrapped as an xyflow node. The Handle sits on whichever edge faces the core, so the
- * line always attaches to the card's real rendered boundary — never a guessed anchor point.
- * No positioning transform here: NODE_ORIGIN handles centering the node itself against xyflow's
- * `position`, so this just needs to render its natural content. */
+/** InputField wrapped as an xyflow node. Exposes a hidden target handle on all 4 sides — so
+ * whichever side actually faces the core (computed per breakpoint in CoreSectionInner) has a
+ * real, correctly-positioned connection point for the line to attach to. No positioning
+ * transform here: NODE_ORIGIN handles centering the node itself against xyflow's `position`. */
 function CardNode({ data }: NodeProps) {
   const { item, index, revealProgress } = data as unknown as CardData;
   return (
     <div>
-      <Handle
-        type="target"
-        position={item.side === "left" ? Position.Right : Position.Left}
-        id="in"
-        style={HIDDEN_HANDLE}
-        isConnectable={false}
-      />
+      {CARDINAL_SIDES.map((side) => (
+        <Handle
+          key={side}
+          type="target"
+          position={HANDLE_POSITION[side]}
+          id={`target-${side}`}
+          style={HIDDEN_HANDLE}
+          isConnectable={false}
+        />
+      ))}
       <InputField item={item} index={index} scrollYProgress={revealProgress} />
     </div>
   );
 }
 
-/** The pulsing core. Exposes left/right source handles, both anchored to the node's exact
- * center, so every line leaving the core starts from one shared point. Like CardNode, no
- * positioning transform here — NODE_ORIGIN centers the whole node against CORE_CENTER. */
+/** The pulsing core. Exposes a hidden source handle on all 4 sides, all anchored to the node's
+ * exact center, so every line leaving the core starts from one shared point — CoreSectionInner
+ * picks whichever side's id best matches the direction toward each card. */
 function CoreNode({ data }: NodeProps) {
   const { coreImageSrc } = data as unknown as CoreData;
   return (
     <div className="relative">
-      <Handle type="source" position={Position.Left} id="core-left" style={CENTER_HANDLE} isConnectable={false} />
-      <Handle type="source" position={Position.Right} id="core-right" style={CENTER_HANDLE} isConnectable={false} />
+      {CARDINAL_SIDES.map((side) => (
+        <Handle
+          key={side}
+          type="source"
+          position={HANDLE_POSITION[side]}
+          id={`core-${side}`}
+          style={CENTER_HANDLE}
+          isConnectable={false}
+        />
+      ))}
 
       <span className="absolute inset-0 animate-ping rounded-full border-2 border-white/20 dark:border-black/20 [animation-duration:2.6s]" />
       <span className="absolute inset-0 animate-ping rounded-full border-2 border-white/20 dark:border-black/20 [animation-delay:0.6s] [animation-duration:2.6s]" />
@@ -190,13 +225,10 @@ function CoreNode({ data }: NodeProps) {
 }
 
 /** The curved connector. sourceX/Y and targetX/Y come from xyflow itself — measured from the real
- * Handle elements on the core and the card — so the path always meets both ends exactly. Color
- * flips with the site's dark mode via Tailwind's `dark:` variant, no JS theme detection needed. */
+ * Handle elements on the core and the card — so the path always meets both ends exactly. */
 function CurvedEdge({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition, data }: EdgeProps) {
   const { revealProgress, start, end } = data as unknown as EdgeData;
   const [d] = getBezierPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition, curvature: 0.4 });
-  // getBezierPath always starts the "d" at sourceX/Y (the core) and ends at targetX/Y (the card),
-  // so animating pathLength 0 -> 1 draws the line growing from the core out to the card.
   const pathLength = useTransform(revealProgress, [start, end], [0, 1]);
   return (
     <motion.path
@@ -230,11 +262,17 @@ function CoreSectionInner({ coreImageSrc, items = CORE_ITEMS }: CoreSectionProps
   const bp = useBreakpointIndex();
   const { fitView } = useReactFlow();
 
-  // Fades the whole diagram in as the section scrolls into view — no ScrollTrigger/GSAP needed.
   const { scrollYProgress: revealProgress } = useScroll({
     target: sectionRef,
-    offset: ["start 90%", "start 10%"],
+    offset: ["start 90%", "start 15%"],
   });
+
+  // The core's own position on the current breakpoint's canvas — recomputed whenever the canvas
+  // size changes (i.e. whenever bp changes), since each breakpoint now has its own dimensions.
+  const coreCenter = useMemo(() => {
+    const { width, height } = CANVAS_SIZES[bp];
+    return { x: width / 2, y: height / 2 };
+  }, [bp]);
 
   const resolvedItems = useMemo(() => items.map((item) => resolveItem(item, bp)), [items, bp]);
 
@@ -243,7 +281,7 @@ function CoreSectionInner({ coreImageSrc, items = CORE_ITEMS }: CoreSectionProps
       {
         id: "core",
         type: "core",
-        position: CORE_CENTER,
+        position: coreCenter,
         data: { coreImageSrc },
         draggable: false,
         selectable: false,
@@ -259,28 +297,30 @@ function CoreSectionInner({ coreImageSrc, items = CORE_ITEMS }: CoreSectionProps
         }),
       ),
     ],
-    [resolvedItems, coreImageSrc, revealProgress],
+    [resolvedItems, coreImageSrc, revealProgress, coreCenter],
   );
 
   const edges = useMemo<Edge[]>(
     () =>
-      resolvedItems.map(
-        (item, index): Edge => ({
+      resolvedItems.map((item, index): Edge => {
+        // Recomputed every time `resolvedItems`/`coreCenter` changes (i.e. every breakpoint
+        // change), so the connection point re-picks itself whenever the layout reflows.
+        const sourceSide = nearestSide(coreCenter, item.anchor); // side of the CORE facing this card
+        const targetSide = nearestSide(item.anchor, coreCenter); // side of the CARD facing the core
+        return {
           id: `edge-${item.id}`,
           source: "core",
-          sourceHandle: item.side === "left" ? "core-left" : "core-right",
+          sourceHandle: `core-${sourceSide}`,
           target: item.id,
-          targetHandle: "in",
+          targetHandle: `target-${targetSide}`,
           type: "curved",
           data: { revealProgress, ...revealRange(index, LINE_ENTRY_DELAY) },
           selectable: false,
-        }),
-      ),
-    [resolvedItems, revealProgress],
+        };
+      }),
+    [resolvedItems, revealProgress, coreCenter],
   );
 
-  // Keeps the diagram framed to its container at any size — continuous, not just the three
-  // breakpoints above (those only change the layout's shape).
   useEffect(() => {
     fitView(FIT_VIEW_OPTIONS);
   }, [bp, fitView]);
@@ -294,14 +334,15 @@ function CoreSectionInner({ coreImageSrc, items = CORE_ITEMS }: CoreSectionProps
   }, [fitView]);
 
   return (
-    // Below `md`: fixed width, height derived from the design canvas' own aspect ratio (so the
-    // diagram's proportions stay identical across phones/tablets instead of being squashed by
-    // whatever height the device happens to have), capped at the dynamic viewport height so it
-    // never forces the page taller than the visible screen. At `md` and up: revert to the
-    // previous parent-controlled h-full/w-full sizing.
+    // Mobile (base, <640): the container's own aspect ratio matches CANVAS_SIZES[2] (taller than
+    // wide) exactly, so fitView fills it edge to edge instead of letterboxing — this is what
+    // actually spreads the cards down the screen, not just giving the section more height.
+    // Capped at the dynamic viewport height so it can never force the page taller than the
+    // visible screen. Tablet (sm, 640–1023): matches CANVAS_SIZES[1]. Desktop (lg, 1024+):
+    // reverts to the original parent-controlled h-full/w-full sizing.
     <section
       ref={sectionRef}
-      className="relative aspect-1072/588 max-h-dvh w-full md:aspect-auto md:h-full md:max-h-none"
+      className="relative aspect-[720/1180] max-h-dvh w-full sm:aspect-[980/680] lg:aspect-auto lg:h-full lg:max-h-none"
     >
       <ReactFlow
         nodes={nodes}
