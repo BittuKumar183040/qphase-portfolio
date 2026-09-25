@@ -23,7 +23,7 @@ export const ContainerScroll = ({
     // extra height = the runway the sticky child scrolls through before it releases
     <div ref={containerRef} className="relative" style={{ height: "100vh" }}>
       {/* NOTE: no overflow-hidden and no perspective here — that's what was locking scroll */}
-      <div className="sticky top-0 flex h-screen flex-col items-center bg-black justify-center">
+      <div className="sticky top-0 flex h-screen flex-col items-center justify-center">
         <Header translate={translate} titleComponent={titleComponent} />
         <Card width={width} radius={radius}>
           {children}
@@ -65,9 +65,9 @@ export const Card = ({
         borderRadius: radius,
         transformPerspective: 1200,
       }}
-      className="relative origin-top overflow-hidden bg-black dark:bg-white/80"
+      className="relative origin-top overflow-hidden bg-black dark:bg-white/20 "
     >
-      <div className="relative w-full h-dvh -mb-20">
+      <div className="relative w-full h-dvh">
         <div className="absolute left-1/2 top-0 h-full w-screen max-w-none -translate-x-1/2">
           {children}
         </div>

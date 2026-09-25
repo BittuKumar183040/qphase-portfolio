@@ -21,14 +21,17 @@ export default function Home() {
         <ParticleWaveTerrain />
       </section>
       
-      <section className="bg-white dark:bg-black">
+      <section className="bg-white dark:bg-black -translate-y-20">
         <ContainerScroll titleComponent="">
           <CoreSection coreImageSrc="/asset/Logo.svg" />
         </ContainerScroll>
       </section>
-      <ProblemSolution />
-      <ProgressTimeline />
-      <QphasePipeline />
+      
+      <div className=" -translate-y-20">
+        <ProblemSolution />
+        <ProgressTimeline />
+        <QphasePipeline />
+      </div>
 
       {/* <ScrollSections /> */}
       <ProofPointVerification />
