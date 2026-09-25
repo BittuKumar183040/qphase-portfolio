@@ -13,7 +13,7 @@ const BrandLogo = () => {
     <div className="flex items-center gap-2">
       <button
         onClick={scrollToTop}
-        className="flex items-center gap-2"
+        className="flex items-center gap-2 cursor-pointer"
         aria-label="Go to top"
       >
         <div className="shrink-0">
@@ -26,12 +26,7 @@ const BrandLogo = () => {
           />
         </div>
 
-        <Link
-          href="/"
-          className="text-xs md:text-xl cursor-pointer"
-        >
-          {hero.eyebrow.qphase}
-        </Link>
+        <p className="text-xs md:text-xl">{hero.eyebrow.qphase}</p>
       </button>
 
       <span className="text-black/40 dark:text-white/40">×</span>

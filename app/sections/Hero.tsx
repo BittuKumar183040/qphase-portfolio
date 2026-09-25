@@ -160,7 +160,7 @@ const Hero = () => {
         variants={heroSectionItem}
         className="mt-8 flex flex-wrap items-center gap-4 sm:mt-10 sm:gap-6 z-10"
       >
-        <button className="inline-flex w-auto items-center justify-center whitespace-nowrap rounded-sm bg-[#8C4A2A] px-6 py-1 text-sm font-medium text-[#F6F3EE] transition-all duration-200 hover:bg-[#733D22] hover:shadow-md active:scale-[0.98] sm:px-5 sm:py-3 sm:text-base">
+        <button className="inline-flex w-auto items-center justify-center whitespace-nowrap rounded-sm bg-[#8C4A2A] px-6 py-2 text-sm font-medium text-[#F6F3EE] transition-all duration-200 hover:bg-[#733D22] hover:shadow-md active:scale-[0.98] sm:px-5 sm:py-3 sm:text-base">
           <span>{hero.primaryCta}</span>
           <span className="ml-2 transition-transform duration-300 group-hover:translate-x-1">
             →
