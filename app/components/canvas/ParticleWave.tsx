@@ -29,37 +29,23 @@ import { buildVertexShader } from "./shaders/vertexShader";
 import { buildFragmentShader } from "./shaders/fragmentShader";
 
 interface ParticleWaveProps {
-  /**
-   * Global speed multiplier for the entire wave system (swell + ripples).
-   * 1 = normal speed, 0.5 = half speed, 2 = double speed, 0 = frozen.
-   * Can be changed live — no remount required.
-   */
   speed?: number;
-  /**
-   * false (default) = hard color cutoff at FOAM_HEIGHT_THRESHOLD.
-   * true = soft gradient blend around the threshold (width = GRADIENT_SOFTNESS).
-   * Can be changed live — no remount required.
-   */
   gradient?: boolean;
-  /**
-   * Camera position in world units, e.g. { x: 0, y: 8, z: -4 }.
-   * Defaults to DEFAULT_CAMERA_POSITION from waveConfig.ts.
-   * Can be changed live — no remount required.
-   */
   cameraPosition?: { x: number; y: number; z: number };
-  /**
-   * World-space point the camera looks at. Defaults to DEFAULT_CAMERA_TARGET.
-   * Can be changed live — no remount required.
-   */
   cameraTarget?: { x: number; y: number; z: number };
-  /**
-   * Enable/disable the pointer-follows-a-bump interaction. Default true.
-   */
   pointerInteraction?: boolean;
 }
 
 const [defaultCamX, defaultCamY, defaultCamZ] = DEFAULT_CAMERA_POSITION;
 const [defaultTargetX, defaultTargetY, defaultTargetZ] = DEFAULT_CAMERA_TARGET;
+
+// Simple touch/coarse-pointer check. On touch devices we skip the
+// hover-follow interaction entirely — "hover" isn't a real touch concept,
+// and trying to drive it off touchmove is exactly what was fighting page
+// scroll. Mouse/trackpad users are unaffected.
+const isCoarsePointer = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia?.("(pointer: coarse)").matches;
 
 export const ParticleWave = ({
   speed = 1,
@@ -69,9 +55,6 @@ export const ParticleWave = ({
   pointerInteraction = true,
 }: ParticleWaveProps) => {
   const mountRef = useRef<HTMLDivElement | null>(null);
-  // Refs (not state) so changing these props doesn't re-trigger the whole
-  // scene-setup effect below — the render loop / uniforms just read the
-  // latest value.
   const speedRef = useRef(speed);
   const materialRef = useRef<THREE.ShaderMaterial | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -95,30 +78,39 @@ export const ParticleWave = ({
   }, [cameraPosition.x, cameraPosition.y, cameraPosition.z, cameraTarget.x, cameraTarget.y, cameraTarget.z]);
 
   useEffect(() => {
-    pointerEnabledRef.current = pointerInteraction;
+    // Never enable the drag-follow interaction on touch, regardless of the
+    // prop — see isCoarsePointer note above.
+    pointerEnabledRef.current = pointerInteraction && !isCoarsePointer();
   }, [pointerInteraction]);
 
   useEffect(() => {
     const mount = mountRef.current;
     if (!mount) return;
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        antialias: !isCoarsePointer(), // some mobile GPU/driver combos silently fail (blank canvas) with AA + alpha together
+        alpha: true,
+        powerPreference: "high-performance",
+        failIfMajorPerformanceCaveat: false,
+      });
+    } catch (err) {
+      console.error("ParticleWave: WebGL context creation failed", err);
+      return;
+    }
+
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isCoarsePointer() ? 1.5 : 2));
     renderer.setClearColor(0x000000, 0);
-    // Prevent the browser from hijacking pointer input for touch-scroll —
-    // without this, pointermove on touch/pen devices can get swallowed
-    // before it ever reaches our handler.
-    renderer.domElement.style.touchAction = "none";
+    // "pan-y" (not "none"): lets the browser handle native vertical scroll
+    // gestures on touch devices. touch-action only governs touch/pen
+    // gesture recognition, so this has zero effect on mouse/trackpad users
+    // — the hover-follow effect below still works exactly the same on
+    // desktop. "none" was blocking the page from scrolling at all on mobile.
+    renderer.domElement.style.touchAction = "pan-y";
     mount.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
-    // Size off the mount container, not window.innerWidth/innerHeight.
-    // The pointer raycast below reads mount's actual bounding rect, so if
-    // this component isn't a literal fullscreen background (e.g. it sits
-    // inside a section, a flex/sidebar layout, or gets resized without the
-    // window itself resizing), the camera aspect + canvas pixel size drift
-    // out of sync with the rect used for hover math — the ray no longer
-    // lines up with what's on screen and the pointer bump stops landing.
     const initialWidth = mount.clientWidth || window.innerWidth;
     const initialHeight = mount.clientHeight || window.innerHeight;
     const camera = new THREE.PerspectiveCamera(
@@ -232,16 +224,33 @@ export const ParticleWave = ({
         2
       );
     };
-    // Watch the container itself, not just window resizes — this also
-    // catches layout-driven size changes (sidebar toggles, flex reflow,
-    // orientation change) that never fire a window "resize" event, which
-    // is exactly the kind of drift that broke the pointer/hover alignment.
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(mount);
     resize();
+    // Mobile browsers (especially iOS Safari) can report a 0-height mount
+    // on the very first layout pass when the section uses dynamic viewport
+    // units (h-dvh) — the URL bar hasn't finished resolving yet. A couple
+    // of follow-up passes on the next frames/ticks catches that without
+    // relying purely on ResizeObserver's first callback.
+    requestAnimationFrame(resize);
+    const settleTimer = window.setTimeout(resize, 300);
 
-    // --- pointer interaction: raycast the cursor onto the y=0 water plane,
-    // smoothly follow it, and fade the effect in/out on enter/leave ---
+    // Recover from GPU-driver context loss instead of leaving a dead,
+    // invisible canvas — more common on lower-end/overheating mobile GPUs.
+    const handleContextLost = (e: Event) => {
+      e.preventDefault();
+      cancelAnimationFrame(rafId);
+      console.warn("ParticleWave: WebGL context lost");
+    };
+    const handleContextRestored = () => {
+      console.warn("ParticleWave: WebGL context restored");
+      resize();
+      lastFrameTime = performance.now();
+      rafId = requestAnimationFrame(draw);
+    };
+    renderer.domElement.addEventListener("webglcontextlost", handleContextLost, false);
+    renderer.domElement.addEventListener("webglcontextrestored", handleContextRestored, false);
+
     const raycaster = new THREE.Raycaster();
     const pointerNDC = new THREE.Vector2(1e6, 1e6);
     const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
@@ -253,7 +262,7 @@ export const ParticleWave = ({
     let pointerHasEnteredOnce = false;
 
     const onPointerMove = (e: PointerEvent) => {
-      if (!pointerEnabledRef.current) return;
+      if (!pointerEnabledRef.current || e.pointerType === "touch") return;
       const rect = renderer.domElement.getBoundingClientRect();
       pointerNDC.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       pointerNDC.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -261,8 +270,6 @@ export const ParticleWave = ({
       if (raycaster.ray.intersectPlane(groundPlane, pointerHit)) {
         pointerWorldTarget.set(pointerHit.x, pointerHit.z);
         if (!pointerHasEnteredOnce) {
-          // snap on first contact so we don't lerp in from the far-away
-          // (1e6, 1e6) initial value and produce a giant one-frame bump
           pointerWorldSmoothed.copy(pointerWorldTarget);
           pointerHasEnteredOnce = true;
         }
@@ -328,8 +335,6 @@ export const ParticleWave = ({
       const dt = rawDt * speedRef.current;
       t += dt;
 
-      // spawn cadence also scales with speed, so ripples arrive faster/slower
-      // in step with the faster/slower wave motion instead of feeling out of sync
       if (t * 1000 >= nextSpawnAt) {
         spawnRipple(t);
         const interval =
@@ -357,9 +362,6 @@ export const ParticleWave = ({
       material.uniforms.uTime.value = t;
       material.uniforms.uRippleCount.value = count;
 
-      // pointer bump: smoothly chase the raw target position/activity so it
-      // doesn't snap, and fades out cleanly when pointerInteraction is off
-      // or the pointer leaves the element
       const activeTarget = pointerEnabledRef.current ? pointerActiveTarget : 0;
       pointerActiveSmoothed += (activeTarget - pointerActiveSmoothed) * POINTER.fadeLerp;
       pointerWorldSmoothed.lerp(pointerWorldTarget, POINTER.followLerp);
@@ -373,8 +375,11 @@ export const ParticleWave = ({
 
     return () => {
       resizeObserver.disconnect();
+      window.clearTimeout(settleTimer);
       mount.removeEventListener("pointermove", onPointerMove);
       mount.removeEventListener("pointerleave", onPointerLeave);
+      renderer.domElement.removeEventListener("webglcontextlost", handleContextLost);
+      renderer.domElement.removeEventListener("webglcontextrestored", handleContextRestored);
       cancelAnimationFrame(rafId);
       geometry.dispose();
       material.dispose();
@@ -387,7 +392,7 @@ export const ParticleWave = ({
     };
   }, []);
 
-  return <div className="absolute inset-0 w-full h-full  block" ref={mountRef} />;
+  return <div className="absolute inset-0 w-full h-full block" ref={mountRef} />;
 };
 
 export default ParticleWave;

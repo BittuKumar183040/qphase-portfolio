@@ -14,9 +14,9 @@ import WhoItsFor from "./sections/WhoItsFor";
 
 export default function Home() {
   return (
-    <div className=" text-black dark:text-white bg-white dark:bg-black overflow-x-hidden">
+    <div className=" text-black dark:text-white bg-white dark:bg-black">
       <Navbar />
-      <section id="home" className="relative flex w-full h-dvh bg-white dark:bg-black">
+      <section id="home" className="relative flex w-full h-dvh  dark:bg-black">
         <Hero />
         <ParticleWaveTerrain />
       </section>
@@ -30,14 +30,15 @@ export default function Home() {
       <div className=" -translate-y-20">
         <ProblemSolution />
         <ProgressTimeline />
-        <QphasePipeline />
       </div>
-
-      {/* <ScrollSections /> */}
-      <ProofPointVerification />
-      <WhoItsFor />
-      <ContactUs />
-      <Footer />
+      <div className=" px-5 sm:px-5 md:px-10 lg:px-20">
+        <QphasePipeline />
+        {/* <ScrollSections /> */}
+        <ProofPointVerification />
+        <WhoItsFor />
+        <ContactUs />
+        <Footer />
+      </div>
     </div>
   );
 }

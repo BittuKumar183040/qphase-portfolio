@@ -17,7 +17,8 @@ export const baseNodes: PipelineNode[] = [
     data: {
       number: "01",
       label: "Problem Input",
-      description: "Write the algorithm once without targeting a specific quantum chip.",
+      description:
+        "Write the algorithm once without targeting a specific quantum chip.",
     },
   },
   {
@@ -68,7 +69,8 @@ export const baseNodes: PipelineNode[] = [
     data: {
       number: "05",
       label: "Post-Process Engine",
-      description: "Do processing operation includes Backend Results, Normalization, Metrics Engine, Risk Engine, Exeution Report",
+      description:
+        "Do processing operation includes Backend Results, Normalization, Metrics Engine, Risk Engine, Exeution Report",
     },
   },
   {
@@ -78,7 +80,8 @@ export const baseNodes: PipelineNode[] = [
     data: {
       number: "06",
       label: "Application Integration",
-      description: "Allowing to work on different application such as FoldShild and Omega Signal.",
+      description:
+        "Allowing to work on different application such as FoldShild and Omega Signal.",
     },
   },
 ];

@@ -19,13 +19,13 @@ export const RIPPLE = {
   minInterval: 380,
   maxInterval: 1000,
   amplitude: [0.35, 0.85] as [number, number],
-  speed: [1, 4] as [number, number],
+  speed: [2, 6] as [number, number],
   waveNumber: [1.1, 2.1] as [number, number],
   bandWidth: [2.2, 4.2] as [number, number],
   damping: [0.09, 0.22] as [number, number],
-  spreadDecay: 0.008,
+  spreadDecay: 0.09,
 };
-export const MAX_RIPPLES = 32;
+export const MAX_RIPPLES = 15;
 
 export const WAVE_ACTIVE_THRESHOLD = 0.22;
 export const HEIGHT_NORMALIZE =

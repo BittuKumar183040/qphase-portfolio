@@ -3,7 +3,7 @@ export type StyledText = {
   styled?: string;
 };
 
-export type ProblemItem = {
+export type                                                                    ProblemItem = {
   number: string;
   title: string;
   body: string;

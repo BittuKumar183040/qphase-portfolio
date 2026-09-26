@@ -9,7 +9,7 @@ import PipelineGraph from "./pipeline/PipelineGraph";
 
 export default function QphasePipeline() {
   return (
-    <section className="relative flex w-full min-h-dvh flex-col pointer-events-none justify-center bg-white px-6 py-24 text-black dark:bg-black dark:text-white sm:px-5 md:px-10 lg:px-20">
+    <section className="relative flex w-full min-h-dvh flex-col pointer-events-none justify-center bg-white py-24 text-black dark:bg-black dark:text-white">
       {/* Content — natural height */}
       <motion.div
         variants={{

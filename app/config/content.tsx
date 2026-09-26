@@ -61,12 +61,12 @@ export const ScrollSectionData = {
 
 export const status = [
   {
-    label: "Superconducting *", //done
+    label: "Superconducting *",
     value: "Benchmarked",
   },
   {
     label: "Photonic *",
-    value: "RND - Inprogress", // RND
+    value: "RND - Inprogress",
   },
   {
     label: "Netural Atom *",

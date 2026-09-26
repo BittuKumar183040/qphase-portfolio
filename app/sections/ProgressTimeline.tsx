@@ -1,99 +1,141 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import { item } from "./scroll-sections/core/Reveal";
+import { status } from "../config/content";
 
 export interface ProgressStatusItem {
   label: string;
   value: string;
 }
 
-type Stage = "done" | "progress" | "upcoming";
+type Stage = "Benchmarked" | "RND - Inprogress" | "Upcomming";
 
-/** Classifies a status value into a stage purely by keyword — works with whatever wording your
- * data uses ("Benchmarked", "RND - Inprogress", "Upcomming", ...), no exact-match required. */
 function stageFor(value: string): Stage {
-  const v = value.toLowerCase();
-  if (v.includes("bench") || v.includes("done") || v.includes("complete")) return "done";
-  if (v.includes("progress") || v.includes("rnd") || v.includes("r&d")) return "progress";
-  return "upcoming";
+  if (value.includes("Benchmarked")) return "Benchmarked";
+  if (value.includes("RND - Inprogress")) return "RND - Inprogress";
+  return "Upcomming";
 }
 
-// Colors are fixed, not theme-conditional — this component always sits on a bg-black
-// surface, regardless of the site's light/dark mode, so it needs one palette, not two.
 const STAGE_STYLE: Record<Stage, { dot: string; ring: string; text: string }> = {
-  done: {
+  "Benchmarked": {
     dot: "bg-emerald-400",
     ring: "ring-emerald-400/25",
     text: "text-emerald-400",
   },
-  progress: {
+  "RND - Inprogress": {
     dot: "bg-amber-400",
     ring: "ring-amber-400/25",
     text: "text-amber-400",
   },
-  upcoming: {
-    dot: "bg-white/20",
+  "Upcomming": {
+    dot: "bg-gray-300",
     ring: "ring-white/10",
     text: "text-white/40",
   },
 };
 
-// Same shape/content as the `status` array you shared — used as the default so the component
-// renders correctly with no props. Pass your own `items` to override.
-const DEFAULT_ITEMS: ProgressStatusItem[] = [
-  { label: "Superconducting *", value: "Benchmarked" },
-  { label: "Photonic *", value: "R&D - Inprogress" },
-  { label: "Netural Atom *", value: "Upcomming" },
-];
+const containerVariants: Variants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.12,
+      delayChildren: 0.1,
+    },
+  },
+};
 
-export default function ProgressTimeline({
-  items = DEFAULT_ITEMS,
-}: {
-  items?: ProgressStatusItem[];
-}) {
+const stepVariants: Variants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
+const dotVariants: Variants = {
+  hidden: { opacity: 0, scale: 0 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: { type: "spring", stiffness: 400, damping: 18 },
+  },
+};
+
+const lineVariants: Variants = {
+  hidden: { scaleX: 0 },
+  visible: {
+    scaleX: 1,
+    transition: { duration: 0.5, ease: "easeInOut" },
+  },
+};
+
+const textVariants: Variants = {
+  hidden: { opacity: 0, y: 6 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.35, ease: "easeOut" },
+  },
+};
+
+const ProgressTimeline = () => {
   return (
-    <motion.div variants={item} className="w-full bg-black py-20">
-      <ol className="flex list-none flex-col gap-8 sm:flex-row sm:gap-0">
-        {items.map((entry, index) => {
+    <motion.div variants={item} className="w-full bg-black py-12 sm:py-20">
+      <motion.ul
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.4 }}
+        className="flex list-none flex-row justify-between gap-4  px-5 sm:px-5 md:px-10 lg:px-20"
+      >
+        {status.map((entry, index) => {
           const stage = stageFor(entry.value);
           const styles = STAGE_STYLE[stage];
 
           return (
-            <li
+            <motion.li
               key={entry.label}
-              className="relative flex flex-1 items-start gap-4 sm:flex-col sm:items-center sm:gap-0 sm:text-center"
+              variants={stepVariants}
+              className="relative flex shrink-0 flex-col items-center gap-0 text-center sm:flex-1"
             >
-              {/* incoming connector — each step (after the first) draws the line leading in to it,
-                  vertical on mobile / horizontal from sm: up. 7px == half of the dot's 14px (size-3.5). */}
               {index > 0 && (
-                <span
+                <motion.span
                   aria-hidden
-                  className="absolute bottom-1/2 left-[7px] top-0 w-px bg-white/15 sm:bottom-auto sm:left-0 sm:right-1/2 sm:top-[7px] sm:h-px sm:w-auto"
+                  variants={lineVariants}
+                  style={{ transformOrigin: "left" }}
+                  className="absolute left-0 right-1/2 top-1 h-0.5 w-auto bg-white/15"
                 />
               )}
 
-              {/* dot */}
-              <span className="relative z-10 flex size-3.5 shrink-0 items-center justify-center">
-                {stage === "progress" && (
+              <motion.span
+                variants={dotVariants}
+                className="relative z-10 flex size-3 shrink-0 items-center justify-center"
+              >
+                {stage === "RND - Inprogress" && (
                   <span
                     aria-hidden
                     className={`absolute h-full w-full animate-ping rounded-full opacity-60 ${styles.dot}`}
                   />
                 )}
-                <span className={`relative size-3.5 rounded-full ring-4 ${styles.ring} ${styles.dot}`} />
-              </span>
+                <span className={`relative size-3 rounded-full ring-4 ${styles.ring} ${styles.dot}`} />
+              </motion.span>
 
-              <div className="sm:mt-4">
-                <p className="text-sm font-medium text-white/80">{entry.label}</p>
-                <p className={`mt-1 text-xs font-medium uppercase tracking-wide ${styles.text}`}>
+              <motion.div variants={textVariants} className="mt-3 sm:mt-4">
+                <p className="text-[11px] font-medium leading-tight text-white/80 sm:text-sm">
+                  {entry.label}
+                </p>
+                <p className={`mt-1 text-[9px] font-medium uppercase tracking-wide sm:text-xs ${styles.text}`}>
                   {entry.value}
                 </p>
-              </div>
-            </li>
+              </motion.div>
+            </motion.li>
           );
         })}
-      </ol>
+      </motion.ul>
     </motion.div>
   );
 }
+
+export default ProgressTimeline

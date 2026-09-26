@@ -35,7 +35,7 @@ export default function WhoItsFor() {
   return (
     <section
       id="who-its-for"
-      className="relative w-full bg-white py-24 text-black dark:bg-black dark:text-white sm:px-5 md:px-10 lg:px-20"
+      className="relative w-full bg-white py-24 text-black dark:bg-black dark:text-white"
     >
       {/* Header */}
       <motion.div

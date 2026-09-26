@@ -27,24 +27,10 @@ const stagger: Variants = {
   },
 };
 
-function HighlightedText({
-  text,
-  styled,
-  className = "",
-}: {
-  text: string;
-  styled?: string;
-  className?: string;
-}) {
-  if (!styled) {
-    return <>{text}</>;
-  }
-
+function HighlightedText({ text, styled, className = "" }: { text: string; styled?: string; className?: string }) {
+  if (!styled) { return <>{text}</> }
   const index = text.indexOf(styled);
-
-  if (index === -1) {
-    return <>{text}</>;
-  }
+  if (index === -1) { return <>{text}</> }
 
   return (
     <>
@@ -61,7 +47,6 @@ export default function ProblemSolution() {
   return (
     <section className="relative w-full overflow-hidden bg-white">
       <div className="grid lg:grid-cols-2">
-
         {/* PROBLEM */}
         <motion.div
           initial="hidden"
@@ -71,7 +56,6 @@ export default function ProblemSolution() {
           className="relative flex h-full w-full flex-col bg-black text-white p-5 sm:p-10 md:p-20"
         >
           <div className="w-full max-w-2xl">
-
             {/* Eyebrow */}
             <motion.div
               variants={reveal}
@@ -158,7 +142,6 @@ export default function ProblemSolution() {
           className="relative flex h-full w-full flex-col border-t border-black/10 bg-white dark:bg-black/20 p-5 text-black sm:p-10 md:p-20 lg:border-l lg:border-t-0"
         >
           <div className="w-full max-w-2xl">
-
             {/* Eyebrow */}
             <motion.div
               variants={reveal}
@@ -196,12 +179,9 @@ export default function ProblemSolution() {
             </motion.p>
 
             {/* Solution steps */}
-            <motion.div
-              variants={reveal}
-              className="relative mt-12"
-            >
+            <motion.div variants={reveal} className="relative mt-12">
               {/* Connecting line */}
-              <div className="absolute bottom-8 left-[15px] top-8 w-px bg-black/15" />
+              <div className="absolute bottom-12 left-3.75 top-8 w-px bg-black/15" />
 
               <div className="space-y-8">
                 {solution.items.map((item) => (
@@ -211,7 +191,7 @@ export default function ProblemSolution() {
                     className="group relative flex gap-5"
                   >
                     {/* Number */}
-                    <div className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-black/20 dark:bg-black dark:text-white/80 text-xs font-medium text-black/60 transition-all duration-300 group-hover:border-black/60 group-hover:text-black group-hover:dark:text-white ">
+                    <div className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-black/20 bg-white dark:bg-black dark:text-white/80 text-xs font-medium text-black/60 transition-all duration-300 group-hover:border-black/60 group-hover:text-black group-hover:dark:text-white ">
                       {item.number}
                     </div>
 
@@ -237,18 +217,13 @@ export default function ProblemSolution() {
             >
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                 {solution.footer.items.map((item, index) => (
-                  <div
-                    key={item}
-                    className="flex items-center gap-4"
-                  >
+                  <div key={item} className="flex items-center gap-4">
                     <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-black/45">
                       {item}
                     </span>
 
                     {index < solution.footer.items.length - 1 && (
-                      <span className="text-xs text-black/25">
-                        →
-                      </span>
+                      <span className="text-xs text-black/25">→</span>
                     )}
                   </div>
                 ))}
