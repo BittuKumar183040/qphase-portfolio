@@ -4,7 +4,7 @@ import { ReactFlowProvider } from "@xyflow/react";
 import { motion } from "framer-motion";
 
 import "@xyflow/react/dist/style.css";
-import { item } from "./scroll-sections/core/Reveal";
+import { item } from "../util/Reveal";
 import PipelineGraph from "./pipeline/PipelineGraph";
 
 export default function QphasePipeline() {

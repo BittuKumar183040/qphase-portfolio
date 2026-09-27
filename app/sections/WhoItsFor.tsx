@@ -5,7 +5,7 @@ import { motion, Variants } from "framer-motion";
 import HorizontalEntity from "../components/HorizontalEntity";
 import MediaReveal from "../components/ui/MediaReveal";
 import { eyebrow, heading, subHeading, WHO_ITS_FOR } from "../config/whoItsFor";
-import WhatAPartnerGets from "./scroll-sections/WhatAPartnerGets";
+import WhatAPartnerGets from "./WhatAPartnerGets";
 
 const stagger: Variants = {
   hidden: {},

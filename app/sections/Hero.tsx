@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { container, heroSectionItem } from "./scroll-sections/core/Reveal";
+import { container, heroSectionItem } from "../util/Reveal";
 import { hero } from "../config/content";
 import TypingText from "../components/TypingText";
 import { CONTACT_URL } from "./ContactUs";

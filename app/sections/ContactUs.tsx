@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 
-import { container, item } from "./scroll-sections/core/Reveal";
+import { container, item } from "../util/Reveal";
 
 export const CONTACT_URL = "https://rexcrux.com/qphase";
 

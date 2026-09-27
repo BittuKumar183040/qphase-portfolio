@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, Variants } from "framer-motion";
-import { item } from "./scroll-sections/core/Reveal";
+import { item } from "../util/Reveal";
 import { status } from "../config/content";
 
 export interface ProgressStatusItem {
