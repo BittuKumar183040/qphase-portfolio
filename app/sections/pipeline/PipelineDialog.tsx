@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Background,
   Handle,
   MarkerType,
   Position,
@@ -28,55 +29,8 @@ import {
 import { createPortal } from "react-dom";
 import type { PipelineNodeData } from "./PipelineNode";
 
-/* -------------------------------------------------------------------------- */
-/* Tones                                                                       */
-/* -------------------------------------------------------------------------- */
-
-const tones = {
-  blue: {
-    hex: "#2563eb",
-    box: "border-blue-600/35 bg-blue-600/[0.07]",
-    badge: "bg-blue-600 text-white",
-    text: "text-blue-700 dark:text-blue-400",
-  },
-  purple: {
-    hex: "#9333ea",
-    box: "border-purple-600/35 bg-purple-600/[0.07]",
-    badge: "bg-purple-600 text-white",
-    text: "text-purple-700 dark:text-purple-400",
-  },
-  orange: {
-    hex: "#f97316",
-    box: "border-orange-500/35 bg-orange-500/[0.07]",
-    badge: "bg-orange-500 text-white",
-    text: "text-orange-700 dark:text-orange-400",
-  },
-  green: {
-    hex: "#16a34a",
-    box: "border-green-600/35 bg-green-600/[0.07]",
-    badge: "bg-green-600 text-white",
-    text: "text-green-700 dark:text-green-400",
-  },
-  red: {
-    hex: "#dc2626",
-    box: "border-red-600/35 bg-red-600/[0.07]",
-    badge: "bg-red-600 text-white",
-    text: "text-red-700 dark:text-red-400",
-  },
-} as const;
-
-type Tone = keyof typeof tones;
-
-/** Accent color of each node's dialog. Keys are node ids from baseNodes. */
-const nodeTones: Record<string, Tone> = {
-  algorithm: "blue",
-  ir: "purple",
-  compiler: "orange",
-  superconducting: "green",
-  photonic: "green",
-  validation: "green",
-  result: "red",
-};
+/** Brand color, used in both light and dark mode (same as PipelineNode). */
+const ACCENT = "#733d22";
 
 /* -------------------------------------------------------------------------- */
 /* Mini React Flow diagram                                                     */
@@ -86,13 +40,14 @@ type FlowNodeDef = {
   id: string;
   label: string;
   note?: string;
-  tone: Tone;
   /** Row, starting at 0 (top). */
   layer: number;
   /** Horizontal center as a fraction of the width (0–1). Default 0.5. */
   x?: number;
   /** Number shown in the badge. */
   index?: number;
+  /** Highlighted with the brand color, like the accent node in the graph. */
+  accent?: boolean;
 };
 
 type FlowDef = {
@@ -105,8 +60,12 @@ type ChainItem = string | { label: string; note?: string };
 /** Straight top-to-bottom chain. */
 function chain(
   items: ChainItem[],
-  tone: Tone,
-  opts?: { unnumberedFirst?: boolean; unnumbered?: boolean },
+  opts?: {
+    unnumberedFirst?: boolean;
+    unnumbered?: boolean;
+    /** Indexes of nodes to highlight. */
+    accent?: number[];
+  },
 ): FlowDef {
   const nodes: FlowNodeDef[] = items.map((item, i) => {
     const o = typeof item === "string" ? { label: item } : item;
@@ -114,8 +73,8 @@ function chain(
     return {
       id: `n${i}`,
       ...o,
-      tone,
       layer: i,
+      accent: opts?.accent?.includes(i),
       index: skip ? undefined : opts?.unnumberedFirst ? i : i + 1,
     };
   });
@@ -129,61 +88,74 @@ function chain(
 type StepData = {
   label: string;
   note?: string;
-  tone: Tone;
   index?: number;
+  accent?: boolean;
   delay: number;
 };
 
 function StepNode({ data }: NodeProps<Node<StepData>>) {
-  const t = tones[data.tone];
-
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.88, y: 10 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      whileHover={{ scale: 1.03 }}
-      transition={{
-        delay: data.delay,
-        type: "spring",
-        stiffness: 320,
-        damping: 24,
-      }}
-      className="h-full w-full rounded-lg bg-white dark:bg-black"
-    >
+    // The wrapper is never transformed, so React Flow measures the handles at
+    // their real position. Animate only the inner element.
+    <div className="relative h-full w-full">
       <Handle
         type="target"
         position={Position.Top}
-        className="!h-1 !w-1 !border-0 !bg-transparent"
+        className="!h-1.5 !w-1.5 !border-0 !bg-black/25 dark:!bg-white/25"
       />
 
-      <div
-        className={`flex h-full items-center gap-2 rounded-lg border px-2.5 ${t.box}`}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{
+          delay: data.delay,
+          type: "spring",
+          stiffness: 320,
+          damping: 26,
+        }}
+        className={[
+          "flex h-full w-full items-center gap-2.5 rounded-xl border px-3",
+          "bg-white text-black dark:bg-black dark:text-white",
+          data.accent
+            ? "border-2 border-[#733d22]/50"
+            : "border-black/15 dark:border-white/15",
+        ].join(" ")}
       >
         {data.index !== undefined && (
           <span
-            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${t.badge}`}
+            className={[
+              "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[9px] font-medium",
+              data.accent
+                ? "border-[#733d22] bg-[#733d22] text-white"
+                : "border-black/15 text-black/45 dark:border-white/15 dark:text-white/45",
+            ].join(" ")}
           >
             {data.index}
           </span>
         )}
+
         <div className="min-w-0">
-          <p className="line-clamp-2 text-[11px] font-medium leading-tight sm:text-xs">
+          <p
+            className={`line-clamp-2 text-[11px] leading-tight tracking-tight sm:text-xs ${
+              data.accent ? "font-bold" : "font-medium"
+            }`}
+          >
             {data.label}
           </p>
           {data.note && (
-            <p className="truncate text-[10px] text-black/50 dark:text-white/50">
+            <p className="truncate text-[9px] text-black/50 sm:text-[10px] dark:text-white/50">
               {data.note}
             </p>
           )}
         </div>
-      </div>
+      </motion.div>
 
       <Handle
         type="source"
         position={Position.Bottom}
-        className="!h-1 !w-1 !border-0 !bg-transparent"
+        className="!h-1.5 !w-1.5 !border-0 !bg-black/25 dark:!bg-white/25"
       />
-    </motion.div>
+    </div>
   );
 }
 
@@ -220,10 +192,11 @@ function FlowCanvasInner({ flow }: { flow: FlowDef }) {
     );
     const maxCols = Math.max(...counts.values());
 
-    const pad = 8;
+    const pad = 12;
     const gapX = width < 420 ? 8 : 16;
-    const nodeH = maxCols === 1 ? 44 : 56;
-    const rowGap = nodeH + (maxCols === 1 ? 24 : 36);
+    const nodeH = maxCols === 1 ? 46 : 58;
+    // Generous vertical gap so every arrow (line + head) stays visible.
+    const rowGap = nodeH + (maxCols === 1 ? 30 : 44);
     const rawW = (width - pad * 2 - (maxCols - 1) * gapX) / maxCols;
     const nodeW = Math.round(
       Math.min(maxCols === 1 ? 300 : 190, Math.max(88, rawW)),
@@ -258,9 +231,9 @@ function FlowCanvasInner({ flow }: { flow: FlowDef }) {
         data: {
           label: n.label,
           note: n.note,
-          tone: n.tone,
           index: n.index,
-          delay: 0.15 + i * 0.06,
+          accent: n.accent,
+          delay: 0.12 + i * 0.05,
         },
       };
     });
@@ -268,19 +241,21 @@ function FlowCanvasInner({ flow }: { flow: FlowDef }) {
 
   const edges = useMemo<Edge[]>(
     () =>
-      flow.edges.map(([source, target]) => {
-        const color = tones[flow.nodes.find((n) => n.id === target)!.tone].hex;
-        return {
-          id: `${source}-${target}`,
-          source,
-          target,
-          type: "smoothstep",
-          animated: true,
-          pathOptions: { borderRadius: 12 },
-          markerEnd: { type: MarkerType.ArrowClosed, color, width: 16, height: 16 },
-          style: { stroke: color, strokeWidth: 1.5, opacity: 0.7 },
-        };
-      }),
+      flow.edges.map(([source, target]) => ({
+        id: `${source}-${target}`,
+        source,
+        target,
+        type: "smoothstep",
+        animated: true,
+        pathOptions: { borderRadius: 12 },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color: ACCENT,
+          width: 14,
+          height: 14,
+        },
+        style: { stroke: ACCENT, strokeWidth: 1.5, opacity: 0.85 },
+      })),
     [flow],
   );
 
@@ -288,7 +263,9 @@ function FlowCanvasInner({ flow }: { flow: FlowDef }) {
     <div
       ref={ref}
       style={{ height: metrics.height }}
-      className="w-full overflow-hidden rounded-xl border border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/[0.03] [&_.react-flow__pane]:!touch-pan-y"
+      // pointer-events-none: the diagram is display-only, so touch/wheel input
+      // goes straight to the dialog's scroll area instead of being captured.
+      className="pointer-events-none w-full overflow-hidden rounded-2xl border border-black/10 bg-white dark:border-white/10 dark:bg-black"
     >
       {width > 0 && (
         <ReactFlow
@@ -310,7 +287,13 @@ function FlowCanvasInner({ flow }: { flow: FlowDef }) {
           panOnDrag={false}
           preventScrolling={false}
           proOptions={{ hideAttribution: true }}
-        />
+        >
+          <Background
+            gap={32}
+            size={1}
+            className="text-black/10 dark:text-white/10"
+          />
+        </ReactFlow>
       )}
     </div>
   );
@@ -356,24 +339,22 @@ const preProcessFlow = chain(
     "Braid Matrix",
     "Text",
   ],
-  "blue",
-  { unnumberedFirst: true },
+  { unnumberedFirst: true, accent: [0] },
 );
 
 const irFlow = chain(
   [{ label: "Braid Matrix", note: "36 × 36" }, "QPhase IR"],
-  "purple",
-  { unnumbered: true },
+  { unnumbered: true, accent: [1] },
 );
 
 const executionFlow: FlowDef = {
   nodes: [
-    { id: "ir", label: "QPhase IR", tone: "orange", layer: 0, x: 0.5 },
-    { id: "emu", label: "Emulator", note: "No noise", tone: "blue", layer: 1, x: 1 / 6 },
-    { id: "sim", label: "Simulator", note: "With noise", tone: "orange", layer: 1, x: 0.5 },
-    { id: "hw", label: "Hardware Adapters", tone: "green", layer: 1, x: 5 / 6 },
-    { id: "sc", label: "Superconducting", tone: "green", layer: 2, x: 0.5 },
-    { id: "ph", label: "Photonic", tone: "green", layer: 2, x: 5 / 6 },
+    { id: "ir", label: "QPhase IR", layer: 0, x: 0.5, accent: true },
+    { id: "emu", label: "Emulator", note: "No noise", layer: 1, x: 1 / 6 },
+    { id: "sim", label: "Simulator", note: "With noise", layer: 1, x: 0.5 },
+    { id: "hw", label: "Hardware Adapters", layer: 1, x: 5 / 6 },
+    { id: "sc", label: "Superconducting", layer: 2, x: 0.5 },
+    { id: "ph", label: "Photonic", layer: 2, x: 5 / 6 },
   ],
   edges: [
     ["ir", "emu"],
@@ -386,15 +367,13 @@ const executionFlow: FlowDef = {
 
 const superconductingFlow = chain(
   ["QPhase IR", "Hardware Adapters", "Superconducting"],
-  "green",
-  { unnumbered: true },
+  { unnumbered: true, accent: [2] },
 );
 
-const photonicFlow = chain(
-  ["QPhase IR", "Hardware Adapters", "Photonic"],
-  "green",
-  { unnumbered: true },
-);
+const photonicFlow = chain(["QPhase IR", "Hardware Adapters", "Photonic"], {
+  unnumbered: true,
+  accent: [2],
+});
 
 const postProcessFlow = chain(
   [
@@ -406,14 +385,14 @@ const postProcessFlow = chain(
     "Risk Engine",
     "Execution Report",
   ],
-  "green",
+  { accent: [6] },
 );
 
 const applicationFlow: FlowDef = {
   nodes: [
-    { id: "report", label: "Execution Report", tone: "red", layer: 0, x: 0.5 },
-    { id: "fold", label: "FoldShield", tone: "red", layer: 1, x: 0.25 },
-    { id: "omega", label: "Omega Signal", tone: "red", layer: 1, x: 0.75 },
+    { id: "report", label: "Execution Report", layer: 0, x: 0.5, accent: true },
+    { id: "fold", label: "FoldShield", layer: 1, x: 0.25 },
+    { id: "omega", label: "Omega Signal", layer: 1, x: 0.75 },
   ],
   edges: [
     ["report", "fold"],
@@ -439,7 +418,7 @@ export const nodeDetails: Record<string, ReactNode> = {
         <FlowCanvas flow={irFlow} />
       </Section>
       <Section title="QPhase IR format">
-        <pre className="overflow-x-auto rounded-xl border border-purple-600/30 bg-purple-600/[0.06] p-4 font-mono text-[11px] leading-relaxed sm:text-xs">
+        <pre className="overflow-x-auto rounded-2xl border border-[#733d22]/30 bg-[#733d22]/[0.06] p-4 font-mono text-[11px] leading-relaxed text-black dark:text-white sm:text-xs">
 {`QPHASE_BEGIN
 qubits: 36
 braid_matrix: [36x36]
@@ -532,6 +511,9 @@ function Chevron({ dir }: { dir: "left" | "right" }) {
   );
 }
 
+const navButton =
+  "flex items-center gap-1 rounded-full border border-black/15 px-3 py-1.5 text-xs font-medium text-black/70 transition-colors hover:border-black/30 hover:text-black disabled:pointer-events-none disabled:opacity-30 dark:border-white/15 dark:text-white/70 dark:hover:border-white/30 dark:hover:text-white";
+
 function DialogShell({
   items,
   selectedId,
@@ -554,7 +536,6 @@ function DialogShell({
     items.findIndex((i) => i.id === selectedId),
   );
   const item = items[index];
-  const tone = tones[nodeTones[item.id] ?? "blue"];
 
   const go = useCallback(
     (to: number) => {
@@ -565,7 +546,7 @@ function DialogShell({
     [index, items, onSelect],
   );
 
-  // Escape closes, arrows navigate. Lock body scroll, restore focus on exit.
+  // Lock page scroll while open, restore focus on exit.
   useEffect(() => {
     const previouslyFocused = document.activeElement as HTMLElement | null;
     const previousOverflow = document.body.style.overflow;
@@ -578,6 +559,7 @@ function DialogShell({
     };
   }, []);
 
+  // Escape closes, arrows navigate.
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -605,7 +587,7 @@ function DialogShell({
       <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-6">
         {/* Backdrop */}
         <motion.div
-          className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+          className="absolute inset-0 bg-black/50 backdrop-blur-[2px]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -630,7 +612,8 @@ function DialogShell({
           dragConstraints={{ top: 0, bottom: 0 }}
           dragElastic={{ top: 0, bottom: 0.5 }}
           onDragEnd={onDragEnd}
-          className="relative z-10 flex max-h-[90dvh] w-full flex-col overflow-hidden rounded-t-3xl bg-white text-black shadow-2xl outline-none ring-1 ring-black/10 sm:max-w-2xl sm:rounded-3xl dark:bg-neutral-950 dark:text-white dark:ring-white/10"
+          // Height is capped so the body can scroll on any screen size.
+          className="relative z-10 flex max-h-[calc(100dvh-1rem)] w-full flex-col overflow-hidden rounded-t-2xl border border-black/15 bg-white text-black shadow-2xl outline-none sm:max-h-[85dvh] sm:max-w-2xl sm:rounded-2xl dark:border-white/15 dark:bg-black dark:text-white"
         >
           {/* Accent bar */}
           <motion.div
@@ -639,7 +622,7 @@ function DialogShell({
             animate={{ scaleX: 1 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
             style={{
-              background: `linear-gradient(90deg, ${tone.hex}, ${tone.hex}00)`,
+              background: `linear-gradient(90deg, ${ACCENT}, ${ACCENT}00)`,
               transformOrigin: "left",
             }}
             className="h-1 w-full shrink-0"
@@ -659,15 +642,15 @@ function DialogShell({
                 initial={{ scale: 0.6, rotate: -10, opacity: 0 }}
                 animate={{ scale: 1, rotate: 0, opacity: 1 }}
                 transition={{ type: "spring", stiffness: 420, damping: 22 }}
-                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-sm font-semibold shadow-sm ${tone.badge}`}
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-[#733d22]/50 bg-[#733d22] text-sm font-semibold text-white"
               >
                 {item.data.number}
               </motion.div>
 
               <div className="min-w-0 flex-1">
-                <p className={`text-[11px] font-medium ${tone.text}`}>
+                <span className="inline-block rounded-full bg-[#733d22] px-2 py-0.5 text-[10px] font-medium text-white">
                   Step {index + 1} of {items.length}
-                </p>
+                </span>
                 <AnimatePresence mode="wait" initial={false}>
                   <motion.h2
                     key={item.id}
@@ -676,7 +659,7 @@ function DialogShell({
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -6 }}
                     transition={{ duration: 0.15 }}
-                    className="truncate text-lg font-semibold tracking-tight sm:text-xl"
+                    className="mt-1 truncate text-lg font-semibold tracking-tight sm:text-xl"
                   >
                     {item.data.label}
                   </motion.h2>
@@ -687,7 +670,7 @@ function DialogShell({
                 type="button"
                 onClick={onClose}
                 aria-label="Close"
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-black/5 text-black/60 transition-colors hover:bg-black/10 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current dark:bg-white/10 dark:text-white/60 dark:hover:bg-white/15 dark:hover:text-white"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-black/15 text-black/60 transition-colors hover:border-black/30 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#733d22] dark:border-white/15 dark:text-white/60 dark:hover:border-white/30 dark:hover:text-white"
               >
                 <svg
                   width="16"
@@ -705,10 +688,11 @@ function DialogShell({
             </div>
           </header>
 
-          {/* Body */}
+          {/* Body: scrolls whenever the content is taller than the dialog */}
           <div
             ref={scrollRef}
-            className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-5 pt-4 sm:px-6"
+            style={{ touchAction: "pan-y", WebkitOverflowScrolling: "touch" }}
+            className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-5 pb-5 pt-4 sm:px-6"
           >
             <AnimatePresence mode="wait" initial={false} custom={dir}>
               <motion.div
@@ -719,7 +703,7 @@ function DialogShell({
                 animate="center"
                 exit="exit"
                 transition={{ duration: 0.2, ease: "easeOut" }}
-                className="space-y-6"
+                className="min-w-0 space-y-6"
               >
                 <p className="text-sm leading-relaxed text-black/70 dark:text-white/70">
                   {item.data.longDescription ?? item.data.description}
@@ -731,12 +715,12 @@ function DialogShell({
           </div>
 
           {/* Footer navigation */}
-          <footer className="flex shrink-0 items-center justify-between gap-3 border-t border-black/10 px-4 py-3 sm:px-5 dark:border-white/10">
+          <footer className="flex shrink-0 items-center justify-between gap-3 border-t border-black/10 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-5 dark:border-white/10">
             <button
               type="button"
               onClick={() => go(index - 1)}
               disabled={index === 0}
-              className="flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium text-black/70 transition-colors hover:bg-black/5 disabled:pointer-events-none disabled:opacity-30 dark:text-white/70 dark:hover:bg-white/10"
+              className={navButton}
             >
               <Chevron dir="left" />
               Prev
@@ -753,8 +737,7 @@ function DialogShell({
                   className="p-1"
                 >
                   <motion.span
-                    className="block h-1.5 rounded-full"
-                    style={{ backgroundColor: tone.hex }}
+                    className="block h-1.5 rounded-full bg-[#733d22]"
                     animate={{
                       width: i === index ? 18 : 6,
                       opacity: i === index ? 1 : 0.3,
@@ -769,7 +752,7 @@ function DialogShell({
               type="button"
               onClick={() => go(index + 1)}
               disabled={index === items.length - 1}
-              className="flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium text-black/70 transition-colors hover:bg-black/5 disabled:pointer-events-none disabled:opacity-30 dark:text-white/70 dark:hover:bg-white/10"
+              className={navButton}
             >
               Next
               <Chevron dir="right" />
