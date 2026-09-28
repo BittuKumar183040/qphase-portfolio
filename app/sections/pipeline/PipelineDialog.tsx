@@ -2,12 +2,15 @@
 
 import {
   Background,
+  BaseEdge,
+  getSmoothStepPath,
   Handle,
   MarkerType,
   Position,
   ReactFlow,
   ReactFlowProvider,
   type Edge,
+  type EdgeProps,
   type Node,
   type NodeProps,
 } from "@xyflow/react";
@@ -161,6 +164,36 @@ function StepNode({ data }: NodeProps<Node<StepData>>) {
 
 const flowNodeTypes = { step: StepNode };
 
+type CenteredEdgeData = { sx: number; sy: number; tx: number; ty: number };
+
+/**
+ * Draws the connector from coordinates computed by our own layout (exact
+ * bottom-center of the source box to exact top-center of the target box)
+ * instead of from DOM-measured handle positions, which can drift while the
+ * dialog is scaling/sliding in.
+ */
+function CenteredEdge({
+  id,
+  markerEnd,
+  style,
+  data,
+}: EdgeProps<Edge<CenteredEdgeData>>) {
+  const d = data!;
+  const [path] = getSmoothStepPath({
+    sourceX: d.sx,
+    sourceY: d.sy,
+    sourcePosition: Position.Bottom,
+    targetX: d.tx,
+    targetY: d.ty,
+    targetPosition: Position.Top,
+    borderRadius: 12,
+  });
+
+  return <BaseEdge id={id} path={path} markerEnd={markerEnd} style={style} />;
+}
+
+const flowEdgeTypes = { centered: CenteredEdge };
+
 function useElementWidth<T extends HTMLElement>() {
   const ref = useRef<T>(null);
   const [width, setWidth] = useState(0);
@@ -211,43 +244,61 @@ function FlowCanvasInner({ flow }: { flow: FlowDef }) {
     };
   }, [flow, width]);
 
-  const nodes = useMemo<Node<StepData>[]>(() => {
+  // Single source of truth for every box's position and size.
+  const boxes = useMemo(() => {
     const { pad, nodeH, rowGap, nodeW } = metrics;
 
-    return flow.nodes.map((n, i) => {
+    return flow.nodes.map((n) => {
       const cx = (n.x ?? 0.5) * width;
-      const x = Math.min(
-        Math.max(pad, cx - nodeW / 2),
-        Math.max(pad, width - nodeW - pad),
+      const x = Math.round(
+        Math.min(
+          Math.max(pad, cx - nodeW / 2),
+          Math.max(pad, width - nodeW - pad),
+        ),
       );
-
-      return {
-        id: n.id,
-        type: "step",
-        position: { x, y: pad + n.layer * rowGap },
-        style: { width: nodeW, height: nodeH },
-        draggable: false,
-        selectable: false,
-        data: {
-          label: n.label,
-          note: n.note,
-          index: n.index,
-          accent: n.accent,
-          delay: 0.12 + i * 0.05,
-        },
-      };
+      return { def: n, x, y: pad + n.layer * rowGap, w: nodeW, h: nodeH };
     });
   }, [flow, metrics, width]);
 
-  const edges = useMemo<Edge[]>(
+  const nodes = useMemo<Node<StepData>[]>(
     () =>
-      flow.edges.map(([source, target]) => ({
+      boxes.map(({ def, x, y, w, h }, i) => ({
+        id: def.id,
+        type: "step",
+        position: { x, y },
+        style: { width: w, height: h },
+        draggable: false,
+        selectable: false,
+        data: {
+          label: def.label,
+          note: def.note,
+          index: def.index,
+          accent: def.accent,
+          delay: 0.12 + i * 0.05,
+        },
+      })),
+    [boxes],
+  );
+
+  const edges = useMemo<Edge<CenteredEdgeData>[]>(() => {
+    const byId = new Map(boxes.map((b) => [b.def.id, b]));
+
+    return flow.edges.map(([source, target]) => {
+      const s = byId.get(source)!;
+      const t = byId.get(target)!;
+
+      return {
         id: `${source}-${target}`,
         source,
         target,
-        type: "smoothstep",
+        type: "centered",
         animated: true,
-        pathOptions: { borderRadius: 12 },
+        data: {
+          sx: s.x + s.w / 2,
+          sy: s.y + s.h,
+          tx: t.x + t.w / 2,
+          ty: t.y,
+        },
         markerEnd: {
           type: MarkerType.ArrowClosed,
           color: ACCENT,
@@ -255,9 +306,9 @@ function FlowCanvasInner({ flow }: { flow: FlowDef }) {
           height: 14,
         },
         style: { stroke: ACCENT, strokeWidth: 1.5, opacity: 0.85 },
-      })),
-    [flow],
-  );
+      };
+    });
+  }, [boxes, flow]);
 
   return (
     <div
@@ -272,6 +323,7 @@ function FlowCanvasInner({ flow }: { flow: FlowDef }) {
           nodes={nodes}
           edges={edges}
           nodeTypes={flowNodeTypes}
+          edgeTypes={flowEdgeTypes}
           defaultViewport={{ x: 0, y: 0, zoom: 1 }}
           minZoom={1}
           maxZoom={1}
