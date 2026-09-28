@@ -14,7 +14,7 @@ export type PipelineNodeData = {
   /** Extra dialog content (a `nodeDetails` entry wins over this). */
   details?: ReactNode;
   /** Optional logo, e.g. "/pipeline/compiler.svg". */
-  logo?: string;
+  logo?: string | LucideIcon;
   accent?: boolean;
   /** Injected by PipelineGraph so a node can be opened with the keyboard. */
   onOpen?: () => void;
@@ -33,22 +33,26 @@ export const baseNodes: PipelineNode[] = [
     label: "Problem Input",
     description:
       "Write the algorithm once without targeting a specific quantum chip.",
+    logo: FileChartColumn,
   }),
   node("ir", {
     number: "02",
     label: "Pre-Processing",
     description: "QPhase Intermediate Representation",
+    logo: BroomSparkles,
   }),
   node("compiler", {
     number: "03",
     label: "QPhase / Compiler",
     description: "Quantum Execution Engine",
+    logo: "./asset/Logo.svg",
     accent: true,
   }),
   node("superconducting", {
     number: "04A",
     label: "Superconducting",
     description: "Optimized for superconducting quantum processors.",
+    logo: MemoryStick,
   }),
   node("photonic", {
     number: "04B",
@@ -59,13 +63,15 @@ export const baseNodes: PipelineNode[] = [
     number: "05",
     label: "Post-Process Engine",
     description:
-      "Processing operations include Backend Results, Normalization, Metrics Engine, Risk Engine and Execution Report.",
+    "Processing operations include Backend Results, Normalization, Metrics Engine, Risk Engine and Execution Report.",
+    logo: ChartNoAxesColumnIncreasing,
   }),
   node("result", {
     number: "06",
     label: "Application Integration",
     description:
-      "Allows work across different applications such as FoldShield and Omega Signal.",
+    "Allows work across different applications such as FoldShield and Omega Signal.",
+    logo: LayoutList,
   }),
 ];
 
