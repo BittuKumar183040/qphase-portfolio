@@ -1,14 +1,10 @@
 "use client";
 
 import { baseEdges, baseNodes } from "@/app/config/QphaePipeline";
-import {
-  Background,
-  ReactFlow,
-  useReactFlow,
-} from "@xyflow/react";
-import { useEffect, useMemo, useState } from "react";
-import { PipelineNode } from "./PipelineNode";
-
+import { Background, ReactFlow, useReactFlow, type Node } from "@xyflow/react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { nodeDetails, PipelineDialog } from "./PipelineDialog";
+import { PipelineNode, type PipelineNodeData } from "./PipelineNode";
 
 export const nodeTypes = {
   pipeline: PipelineNode,
@@ -17,6 +13,7 @@ export const nodeTypes = {
 function PipelineGraph() {
   const { fitView } = useReactFlow();
 
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [containerSize, setContainerSize] = useState({
     width: 0,
     height: 0,
@@ -87,7 +84,10 @@ function PipelineGraph() {
         ir: { x: centerX, y: 120 },
         compiler: { x: centerX, y: 240 },
         superconducting: { x: Math.max(24, width * 0.08), y: 380 },
-        photonic: { x: Math.min(width - nodeWidth - 24, width * 0.92 - nodeWidth), y: 380 },
+        photonic: {
+          x: Math.min(width - nodeWidth - 24, width * 0.92 - nodeWidth),
+          y: 380,
+        },
         validation: { x: centerX, y: 520 },
         result: { x: centerX, y: 640 },
       };
@@ -160,14 +160,42 @@ function PipelineGraph() {
     };
   }, [containerSize.width]);
 
-  const nodes = layout.nodes;
+  // Merge dialog details + keyboard "open" handler into each node's data.
+  const nodes = useMemo(
+    () =>
+      layout.nodes.map((node) => {
+        const data = node.data as PipelineNodeData;
+        return {
+          ...node,
+          data: {
+            ...data,
+            details: nodeDetails[node.id] ?? data.details,
+            onOpen: () => setSelectedId(node.id),
+          },
+        };
+      }),
+    [layout.nodes],
+  );
+
+  // Dialog items follow the order of baseNodes (used for Prev / Next).
+  const dialogItems = useMemo(
+    () => nodes.map((n) => ({ id: n.id, data: n.data as PipelineNodeData })),
+    [nodes],
+  );
+
+  const closeDialog = useCallback(() => setSelectedId(null), []);
 
   useEffect(() => {
     if (!containerSize.width) return;
 
     const frame = requestAnimationFrame(() => {
       fitView({
-        padding: containerSize.width < 640 ? 0.12 : containerSize.width < 1100 ? 0.1 : 0.08,
+        padding:
+          containerSize.width < 640
+            ? 0.12
+            : containerSize.width < 1100
+              ? 0.1
+              : 0.08,
         duration: 450,
         minZoom: 0.35,
         maxZoom: 1.1,
@@ -194,39 +222,49 @@ function PipelineGraph() {
   );
 
   return (
-    <div
-      data-qphase-pipeline-graph
-      className="relative min-h-180 w-full flex-1 overflow-hidden rounded-2xl bg-white sm:min-h-162.5 md:min-h-140 lg:min-h-0 dark:border-white/10 dark:bg-black"
-    >
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        nodeTypes={nodeTypes}
-        fitView
-        fitViewOptions={{
-          padding: 0.1,
-          minZoom: 0.35,
-          maxZoom: 1.1,
-        }}
-        nodesDraggable={false}
-        nodesConnectable={false}
-        elementsSelectable={false}
-        zoomOnScroll={false}
-        zoomOnPinch={false}
-        panOnScroll={false}
-        panOnDrag={false}
-        preventScrolling
-        proOptions={{
-          hideAttribution: true,
-        }}
+    <>
+      <div
+        data-qphase-pipeline-graph
+        className="relative min-h-180 w-full flex-1 overflow-hidden rounded-2xl bg-white sm:min-h-162.5 md:min-h-140 lg:min-h-0 dark:border-white/10 dark:bg-black"
       >
-        <Background
-          gap={32}
-          size={1}
-          className="text-black/10 dark:text-white/10"
-        />
-      </ReactFlow>
-    </div>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          nodeTypes={nodeTypes}
+          onNodeClick={(_, node: Node) => setSelectedId(node.id)}
+          fitView
+          fitViewOptions={{
+            padding: 0.1,
+            minZoom: 0.35,
+            maxZoom: 1.1,
+          }}
+          nodesDraggable={false}
+          nodesConnectable={false}
+          elementsSelectable={false}
+          zoomOnScroll={false}
+          zoomOnPinch={false}
+          panOnScroll={false}
+          panOnDrag={false}
+          preventScrolling
+          proOptions={{
+            hideAttribution: true,
+          }}
+        >
+          <Background
+            gap={32}
+            size={1}
+            className="text-black/10 dark:text-white/10"
+          />
+        </ReactFlow>
+      </div>
+
+      <PipelineDialog
+        items={dialogItems}
+        selectedId={selectedId}
+        onSelect={setSelectedId}
+        onClose={closeDialog}
+      />
+    </>
   );
 }
 
