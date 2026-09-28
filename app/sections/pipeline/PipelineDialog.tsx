@@ -1,36 +1,13 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
-import {
-  Background,
-  BaseEdge,
-  getSmoothStepPath,
-  Handle,
-  MarkerType,
-  Position,
-  ReactFlow,
-  ReactFlowProvider,
-  type Edge,
-  type EdgeProps,
-  type Node,
-  type NodeProps,
-} from "@xyflow/react";
-import {
-  AnimatePresence,
-  MotionConfig,
-  motion,
-  useDragControls,
-  type PanInfo,
-} from "framer-motion";
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
+import { Background, BaseEdge, getSmoothStepPath, Handle, MarkerType, Position, ReactFlow, ReactFlowProvider, type Edge, type EdgeProps, type Node, type NodeProps } from "@xyflow/react";
+import { AnimatePresence, MotionConfig, motion, useDragControls, type PanInfo } from "framer-motion";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import type { PipelineNodeData } from "./PipelineNode";
+import { PipelineStepCard } from "./PipelineStepCard";
+import { applicationFlow, executionFlow, irFlow, photonicFlow, postProcessFlow, preProcessFlow, superconductingFlow, type FlowDef, type PipelineNodeData } from "../../config/QphasePipeline";
+import type { LucideIcon } from "lucide-react";
 
 /** Brand color, used in both light and dark mode (same as PipelineNode). */
 const ACCENT = "#733d22";
@@ -39,60 +16,13 @@ const ACCENT = "#733d22";
 /* Mini React Flow diagram                                                     */
 /* -------------------------------------------------------------------------- */
 
-type FlowNodeDef = {
-  id: string;
-  label: string;
-  note?: string;
-  /** Row, starting at 0 (top). */
-  layer: number;
-  /** Horizontal center as a fraction of the width (0–1). Default 0.5. */
-  x?: number;
-  /** Number shown in the badge. */
-  index?: number;
-  /** Highlighted with the brand color, like the accent node in the graph. */
-  accent?: boolean;
-};
-
-type FlowDef = {
-  nodes: FlowNodeDef[];
-  edges: [source: string, target: string][];
-};
-
-type ChainItem = string | { label: string; note?: string };
-
-/** Straight top-to-bottom chain. */
-function chain(
-  items: ChainItem[],
-  opts?: {
-    unnumberedFirst?: boolean;
-    unnumbered?: boolean;
-    /** Indexes of nodes to highlight. */
-    accent?: number[];
-  },
-): FlowDef {
-  const nodes: FlowNodeDef[] = items.map((item, i) => {
-    const o = typeof item === "string" ? { label: item } : item;
-    const skip = opts?.unnumbered || (opts?.unnumberedFirst && i === 0);
-    return {
-      id: `n${i}`,
-      ...o,
-      layer: i,
-      accent: opts?.accent?.includes(i),
-      index: skip ? undefined : opts?.unnumberedFirst ? i : i + 1,
-    };
-  });
-
-  return {
-    nodes,
-    edges: nodes.slice(1).map((n, i) => [`n${i}`, n.id]),
-  };
-}
-
 type StepData = {
   label: string;
-  note?: string;
+  description?: string;
+  logo?: string | LucideIcon;
   index?: number;
   accent?: boolean;
+  compact: boolean;
   delay: number;
 };
 
@@ -108,6 +38,7 @@ function StepNode({ data }: NodeProps<Node<StepData>>) {
       />
 
       <motion.div
+        className="h-full w-full"
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{
@@ -116,41 +47,15 @@ function StepNode({ data }: NodeProps<Node<StepData>>) {
           stiffness: 320,
           damping: 26,
         }}
-        className={[
-          "flex h-full w-full items-center gap-2.5 rounded-xl border px-3",
-          "bg-white text-black dark:bg-black dark:text-white",
-          data.accent
-            ? "border-2 border-[#733d22]/50"
-            : "border-black/15 dark:border-white/15",
-        ].join(" ")}
       >
-        {data.index !== undefined && (
-          <span
-            className={[
-              "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[9px] font-medium",
-              data.accent
-                ? "border-[#733d22] bg-[#733d22] text-white"
-                : "border-black/15 text-black/45 dark:border-white/15 dark:text-white/45",
-            ].join(" ")}
-          >
-            {data.index}
-          </span>
-        )}
-
-        <div className="min-w-0">
-          <p
-            className={`line-clamp-2 text-[11px] leading-tight tracking-tight sm:text-xs ${
-              data.accent ? "font-bold" : "font-medium"
-            }`}
-          >
-            {data.label}
-          </p>
-          {data.note && (
-            <p className="truncate text-[9px] text-black/50 sm:text-[10px] dark:text-white/50">
-              {data.note}
-            </p>
-          )}
-        </div>
+        <PipelineStepCard
+          index={data.index}
+          label={data.label}
+          description={data.description}
+          logo={data.logo}
+          accent={data.accent}
+          compact={data.compact}
+        />
       </motion.div>
 
       <Handle
@@ -227,7 +132,7 @@ function FlowCanvasInner({ flow }: { flow: FlowDef }) {
 
     const pad = 12;
     const gapX = width < 420 ? 8 : 16;
-    const nodeH = maxCols === 1 ? 46 : 58;
+    const nodeH = maxCols === 1 ? 52 : 64;
     // Generous vertical gap so every arrow (line + head) stays visible.
     const rowGap = nodeH + (maxCols === 1 ? 30 : 44);
     const rawW = (width - pad * 2 - (maxCols - 1) * gapX) / maxCols;
@@ -240,6 +145,8 @@ function FlowCanvasInner({ flow }: { flow: FlowDef }) {
       nodeH,
       rowGap,
       nodeW,
+      // Too narrow for the logo (e.g. 3 columns on a phone).
+      compact: nodeW < 130,
       height: pad * 2 + (layers - 1) * rowGap + nodeH,
     };
   }, [flow, width]);
@@ -271,13 +178,15 @@ function FlowCanvasInner({ flow }: { flow: FlowDef }) {
         selectable: false,
         data: {
           label: def.label,
-          note: def.note,
+          description: def.description,
+          logo: def.logo,
           index: def.index,
           accent: def.accent,
+          compact: metrics.compact,
           delay: 0.12 + i * 0.05,
         },
       })),
-    [boxes],
+    [boxes, metrics.compact],
   );
 
   const edges = useMemo<Edge<CenteredEdgeData>[]>(() => {
@@ -367,90 +276,18 @@ function FlowCanvas({ flow }: { flow: FlowDef }) {
 /* Content                                                                     */
 /* -------------------------------------------------------------------------- */
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+function Section({ title, children }: { title?: string; children: ReactNode }) {
   return (
     <section className="space-y-2.5">
-      <h3 className="text-[11px] font-semibold uppercase tracking-wider text-black/45 dark:text-white/45">
-        {title}
-      </h3>
+      {title &&
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-black/45 dark:text-white/45">
+          {title}
+        </h3>
+      }
       {children}
     </section>
   );
 }
-
-const preProcessFlow = chain(
-  [
-    "Input CSV file",
-    "CSV Loader",
-    "Data Cleaning",
-    "Normalization",
-    "Relationship Builder",
-    "Braid Generator",
-    "Braid Features",
-    "Knot Features",
-    "Braid Matrix",
-    "Text",
-  ],
-  { unnumberedFirst: true, accent: [0] },
-);
-
-const irFlow = chain(
-  [{ label: "Braid Matrix", note: "36 × 36" }, "QPhase IR"],
-  { unnumbered: true, accent: [1] },
-);
-
-const executionFlow: FlowDef = {
-  nodes: [
-    { id: "ir", label: "QPhase IR", layer: 0, x: 0.5, accent: true },
-    { id: "emu", label: "Emulator", note: "No noise", layer: 1, x: 1 / 6 },
-    { id: "sim", label: "Simulator", note: "With noise", layer: 1, x: 0.5 },
-    { id: "hw", label: "Hardware Adapters", layer: 1, x: 5 / 6 },
-    { id: "sc", label: "Superconducting", layer: 2, x: 0.5 },
-    { id: "ph", label: "Photonic", layer: 2, x: 5 / 6 },
-  ],
-  edges: [
-    ["ir", "emu"],
-    ["ir", "sim"],
-    ["ir", "hw"],
-    ["hw", "sc"],
-    ["hw", "ph"],
-  ],
-};
-
-const superconductingFlow = chain(
-  ["QPhase IR", "Hardware Adapters", "Superconducting"],
-  { unnumbered: true, accent: [2] },
-);
-
-const photonicFlow = chain(["QPhase IR", "Hardware Adapters", "Photonic"], {
-  unnumbered: true,
-  accent: [2],
-});
-
-const postProcessFlow = chain(
-  [
-    "Backend Results",
-    "Normalization",
-    "Probability Processing",
-    "Metrics Engine",
-    "Decision Engine",
-    "Risk Engine",
-    "Execution Report",
-  ],
-  { accent: [6] },
-);
-
-const applicationFlow: FlowDef = {
-  nodes: [
-    { id: "report", label: "Execution Report", layer: 0, x: 0.5, accent: true },
-    { id: "fold", label: "FoldShield", layer: 1, x: 0.25 },
-    { id: "omega", label: "Omega Signal", layer: 1, x: 0.75 },
-  ],
-  edges: [
-    ["report", "fold"],
-    ["report", "omega"],
-  ],
-};
 
 /**
  * Extra dialog content per node id. Any ReactNode works here.
@@ -469,21 +306,25 @@ export const nodeDetails: Record<string, ReactNode> = {
       <Section title="Flow">
         <FlowCanvas flow={irFlow} />
       </Section>
-      <Section title="QPhase IR format">
-        <pre className="overflow-x-auto rounded-2xl border border-[#733d22]/30 bg-[#733d22]/[0.06] p-4 font-mono text-[11px] leading-relaxed text-black dark:text-white sm:text-xs">
-{`QPHASE_BEGIN
-qubits: 36
-braid_matrix: [36x36]
-features: {
-  braid: ..,
-  knot: ...
-}
-metadata: {
-  source: "input.csv",
-  timestamp: ..
-}
-QPHASE_END`}
-        </pre>
+      <Section>
+        <div className=" flex justify-center items-center">
+          <pre className="flex-1 overflow-x-auto rounded-2xl border border-[#733d22]/30 bg-[#733d22]/[0.06] p-4 font-mono text-xs leading-relaxed text-black dark:text-white">
+            {`QPHASE_BEGIN
+  qubits: 36
+  braid_matrix: [36x36]
+  features: {
+    braid: ..,
+    knot: ...
+  }
+  metadata: {
+    source: "input.csv",
+    timestamp: ..
+  }
+  QPHASE_END`}
+          </pre>
+          <img className=" h-48" src="./pipeline/braid-grid.png" alt="braid-grid" />
+          <img className=" h-48" src="./pipeline/braid-diagram.png" alt="braid-diagram" />
+        </div>
       </Section>
     </div>
   ),
@@ -636,7 +477,12 @@ function DialogShell({
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-6">
+      <div
+        // Lenis ignores wheel/touch events inside this subtree, so the browser
+        // scrolls the dialog body natively instead of Lenis scrolling the page.
+        data-lenis-prevent
+        className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-6"
+      >
         {/* Backdrop */}
         <motion.div
           className="absolute inset-0 bg-black/50 backdrop-blur-[2px]"
@@ -657,7 +503,12 @@ function DialogShell({
           initial={hidden}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ ...hidden, transition: { duration: 0.2, ease: "easeIn" } }}
-          transition={{ type: "spring", damping: 28, stiffness: 320, mass: 0.8 }}
+          transition={{
+            type: "spring",
+            damping: 28,
+            stiffness: 320,
+            mass: 0.8,
+          }}
           drag={isMobile ? "y" : false}
           dragControls={controls}
           dragListener={false}
@@ -828,6 +679,7 @@ export function PipelineDialog({
   onClose: () => void;
 }) {
   const [mounted, setMounted] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
 
   if (!mounted) return null;

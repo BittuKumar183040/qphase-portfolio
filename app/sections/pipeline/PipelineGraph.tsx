@@ -1,13 +1,17 @@
 "use client";
 
-import { baseEdges, baseNodes } from "@/app/config/QphaePipeline";
+import {
+  baseEdges,
+  baseNodes,
+  type PipelineNodeData,
+} from "../../config/QphasePipeline";
 import { Background, ReactFlow, useReactFlow, type Node } from "@xyflow/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { nodeDetails, PipelineDialog } from "./PipelineDialog";
-import { PipelineNode, type PipelineNodeData } from "./PipelineNode";
+import { PipelineFlowNode } from "./PipelineStepCard";
 
 export const nodeTypes = {
-  pipeline: PipelineNode,
+  pipeline: PipelineFlowNode,
 };
 
 function PipelineGraph() {
