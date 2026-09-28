@@ -17,24 +17,312 @@ export const nodeTypes = {
   pipeline: PipelineNode,
 };
 
+/* -------------------------------------------------------------------------- */
+/* Flow diagram helpers (flexbox + arrows)                                     */
+/* -------------------------------------------------------------------------- */
+
+const tones = {
+  blue: {
+    box: "border-blue-600/30 bg-blue-600/5",
+    badge: "bg-blue-600 text-white",
+    title: "text-blue-700 dark:text-blue-400",
+  },
+  purple: {
+    box: "border-purple-600/30 bg-purple-600/5",
+    badge: "bg-purple-600 text-white",
+    title: "text-purple-700 dark:text-purple-400",
+  },
+  orange: {
+    box: "border-orange-500/30 bg-orange-500/5",
+    badge: "bg-orange-500 text-white",
+    title: "text-orange-700 dark:text-orange-400",
+  },
+  green: {
+    box: "border-green-600/30 bg-green-600/5",
+    badge: "bg-green-600 text-white",
+    title: "text-green-700 dark:text-green-400",
+  },
+  red: {
+    box: "border-red-600/30 bg-red-600/5",
+    badge: "bg-red-600 text-white",
+    title: "text-red-700 dark:text-red-400",
+  },
+} as const;
+
+type Tone = keyof typeof tones;
+type FlowItem = { label: string; note?: string };
+
+function Arrow({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      width="12"
+      height="20"
+      viewBox="0 0 12 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={`shrink-0 text-black/35 dark:text-white/35 ${className}`}
+    >
+      <path d="M6 1v16M2 13l4 4 4-4" />
+    </svg>
+  );
+}
+
+function FlowBox({
+  item,
+  tone,
+  index,
+  className = "",
+}: {
+  item: FlowItem;
+  tone: Tone;
+  index?: number;
+  className?: string;
+}) {
+  const t = tones[tone];
+  return (
+    <div
+      className={`flex items-center gap-2.5 rounded-lg border px-3 py-2 ${t.box} ${className}`}
+    >
+      {index !== undefined && (
+        <span
+          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-medium ${t.badge}`}
+        >
+          {index}
+        </span>
+      )}
+      <div className="min-w-0">
+        <p className="text-xs font-medium">{item.label}</p>
+        {item.note && (
+          <p className="text-[11px] text-black/50 dark:text-white/50">
+            {item.note}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="space-y-2">
+      <h3 className="text-xs font-semibold text-black/60 dark:text-white/60">
+        {title}
+      </h3>
+      {children}
+    </section>
+  );
+}
+
+/** Vertical flex chain: box ↓ box ↓ box */
+function FlowSteps({
+  steps,
+  tone,
+  numbered = true,
+}: {
+  steps: FlowItem[];
+  tone: Tone;
+  numbered?: boolean;
+}) {
+  return (
+    <div className="flex flex-col items-stretch">
+      {steps.map((step, i) => (
+        <div key={step.label} className="flex flex-col items-stretch">
+          <FlowBox item={step} tone={tone} index={numbered ? i + 1 : undefined} />
+          {i < steps.length - 1 && <Arrow className="my-0.5 self-center" />}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+type Branch = FlowItem & { tone?: Tone; children?: (FlowItem & { tone?: Tone })[] };
+
+/** Root box that fans out into branches (each may have its own children). */
+function FlowBranch({
+  root,
+  branches,
+  tone,
+}: {
+  root: FlowItem;
+  branches: Branch[];
+  tone: Tone;
+}) {
+  return (
+    <div className="flex flex-col items-center">
+      <FlowBox item={root} tone={tone} className="w-full sm:w-2/3" />
+      <Arrow className="my-0.5" />
+      <div className="flex w-full flex-wrap items-start justify-center gap-3">
+        {branches.map((b) => (
+          <div
+            key={b.label}
+            className="flex min-w-[8rem] flex-1 flex-col items-center"
+          >
+            <FlowBox item={b} tone={b.tone ?? tone} className="w-full" />
+            {b.children && (
+              <>
+                <Arrow className="my-0.5" />
+                <div className="flex w-full flex-wrap justify-center gap-2">
+                  {b.children.map((c) => (
+                    <FlowBox
+                      key={c.label}
+                      item={c}
+                      tone={c.tone ?? b.tone ?? tone}
+                      className="min-w-[7rem] flex-1"
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Dialog content per node id                                                  */
+/* -------------------------------------------------------------------------- */
+
+const executionBranches: Branch[] = [
+  { label: "Emulator", note: "No noise", tone: "blue" },
+  { label: "Simulator", note: "With noise", tone: "orange" },
+  {
+    label: "Hardware Adapters",
+    tone: "green",
+    children: [{ label: "Superconducting" }, { label: "Photonic" }],
+  },
+];
+
 /**
- * Extra dialog content per node id. Put anything you want here (ReactNode).
+ * Extra dialog content per node id. Any ReactNode works here.
  * You can also set `details` directly on a node's `data` in baseNodes;
  * this map wins if both exist.
  */
 const nodeDetails: Record<string, ReactNode> = {
   algorithm: (
-    <ul className="list-disc space-y-1.5 pl-4">
-      <li>Input: quantum circuit or algorithm description</li>
-      <li>Supports gate-based formulations</li>
-    </ul>
+    <div className="space-y-5">
+      <Section title="Input">
+        <FlowBox item={{ label: "Input CSV file" }} tone="blue" />
+      </Section>
+      <Section title="Pre-process engine">
+        <FlowSteps
+          tone="blue"
+          steps={[
+            { label: "CSV Loader" },
+            { label: "Data Cleaning" },
+            { label: "Normalization" },
+            { label: "Relationship Builder" },
+            { label: "Braid Generator" },
+            { label: "Braid Features" },
+            { label: "Knot Features" },
+            { label: "Braid Matrix" },
+            { label: "Text" },
+          ]}
+        />
+      </Section>
+    </div>
   ),
-  // ir: <YourComponent />,
-  // compiler: ...,
-  // superconducting: ...,
-  // photonic: ...,
-  // validation: ...,
-  // result: ...,
+
+  ir: (
+    <div className="space-y-5">
+      <Section title="Flow">
+        <FlowSteps
+          tone="purple"
+          numbered={false}
+          steps={[
+            { label: "Braid Matrix", note: "36 × 36" },
+            { label: "QPhase IR" },
+          ]}
+        />
+      </Section>
+      <Section title="QPhase IR format">
+        <pre className="overflow-x-auto rounded-lg border border-purple-600/30 bg-purple-600/5 p-3 font-mono text-[11px] leading-relaxed">
+{`QPHASE_BEGIN
+qubits: 36
+braid_matrix: [36x36]
+features: {
+  braid: ..,
+  knot: ...
+}
+metadata: {
+  source: "input.csv",
+  timestamp: ..
+}
+QPHASE_END`}
+        </pre>
+      </Section>
+    </div>
+  ),
+
+  compiler: (
+    <Section title="Quantum execution engine">
+      <FlowBranch
+        tone="orange"
+        root={{ label: "QPhase IR" }}
+        branches={executionBranches}
+      />
+    </Section>
+  ),
+
+  superconducting: (
+    <Section title="Execution path">
+      <FlowSteps
+        tone="green"
+        numbered={false}
+        steps={[
+          { label: "QPhase IR" },
+          { label: "Hardware Adapters" },
+          { label: "Superconducting" },
+        ]}
+      />
+    </Section>
+  ),
+
+  photonic: (
+    <Section title="Execution path">
+      <FlowSteps
+        tone="green"
+        numbered={false}
+        steps={[
+          { label: "QPhase IR" },
+          { label: "Hardware Adapters" },
+          { label: "Photonic" },
+        ]}
+      />
+    </Section>
+  ),
+
+  validation: (
+    <Section title="Post-process engine">
+      <FlowSteps
+        tone="green"
+        steps={[
+          { label: "Backend Results" },
+          { label: "Normalization" },
+          { label: "Probability Processing" },
+          { label: "Metrics Engine" },
+          { label: "Decision Engine" },
+          { label: "Risk Engine" },
+          { label: "Execution Report" },
+        ]}
+      />
+    </Section>
+  ),
+
+  result: (
+    <Section title="Application integration">
+      <FlowBranch
+        tone="red"
+        root={{ label: "Execution Report" }}
+        branches={[{ label: "FoldShield" }, { label: "Omega Signal" }]}
+      />
+    </Section>
+  ),
 };
 
 /* -------------------------------------------------------------------------- */
@@ -89,7 +377,7 @@ function PipelineDialog({
         tabIndex={-1}
         className={[
           "flex max-h-[85vh] w-full flex-col overflow-hidden outline-none",
-          "rounded-t-2xl sm:max-w-lg sm:rounded-2xl",
+          "rounded-t-2xl sm:max-w-xl sm:rounded-2xl",
           "border bg-white text-black dark:bg-black dark:text-white",
           data.accent
             ? "border-2 border-[#733d22]/50"
