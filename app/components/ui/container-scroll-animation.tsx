@@ -82,7 +82,7 @@ export const Card = ({
           {children}
         </div>
       </div>
-      <div className=" absolute -bottom-28 h-50 -z-20 w-full bg-black dark:bg-white/20"></div>
+      <div className=" absolute -bottom-28 h-50 -z-20 w-full bg-black dark:bg-[#333333]"></div>
     </motion.div>
   );
 };
