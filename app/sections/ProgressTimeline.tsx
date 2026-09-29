@@ -9,12 +9,12 @@ export interface ProgressStatusItem {
   value: string;
 }
 
-type Stage = "Benchmarked" | "RND - Inprogress" | "Upcomming";
+type Stage = "Benchmarked" | "R&D - Inprogress" | "upcoming";
 
 function stageFor(value: string): Stage {
   if (value.includes("Benchmarked")) return "Benchmarked";
-  if (value.includes("RND - Inprogress")) return "RND - Inprogress";
-  return "Upcomming";
+  if (value.includes("R&D - Inprogress")) return "R&D - Inprogress";
+  return "upcoming";
 }
 
 const STAGE_STYLE: Record<Stage, { dot: string; ring: string; text: string }> = {
@@ -23,12 +23,12 @@ const STAGE_STYLE: Record<Stage, { dot: string; ring: string; text: string }> = 
     ring: "ring-emerald-400/25",
     text: "text-emerald-400",
   },
-  "RND - Inprogress": {
+  "R&D - Inprogress": {
     dot: "bg-amber-400",
     ring: "ring-amber-400/25",
     text: "text-amber-400",
   },
-  "Upcomming": {
+  "upcoming": {
     dot: "bg-gray-300",
     ring: "ring-white/10",
     text: "text-white/40",
@@ -113,7 +113,7 @@ const ProgressTimeline = () => {
                 variants={dotVariants}
                 className="relative z-10 flex size-3 shrink-0 items-center justify-center"
               >
-                {stage === "RND - Inprogress" && (
+                {stage === "R&D - Inprogress" && (
                   <span
                     aria-hidden
                     className={`absolute h-full w-full animate-ping rounded-full opacity-60 ${styles.dot}`}

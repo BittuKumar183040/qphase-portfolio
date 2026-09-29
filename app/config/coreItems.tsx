@@ -8,7 +8,7 @@ export const CORE_ITEMS: CoreItem[] = [
     side: "left",
     label: "No more underselling your circuits.",
     title:
-      "Predicts how accurate your result will be on real hardware — corrected for how your circuit actually behaves under noise.",
+      "Simulates how accurate your result will be on real hardware — corrected for how your circuit actually behaves under noise.",
     width: 200,
     x: [18, 30, 8],
     y: [14, 10, 4],
@@ -47,7 +47,7 @@ export const CORE_ITEMS: CoreItem[] = [
     id: "trusted-number",
     side: "right",
     label: "The number you can trust.",
-    title: "Fixed the formula. Validated on real hardware.",
+    title: "Fixed the formula. Validated on quantum emulator/simulator",
     width: 170,
     x: [86, 74, 92],
     y: [22, 22, 30],

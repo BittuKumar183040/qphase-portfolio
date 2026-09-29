@@ -66,10 +66,10 @@ export const status = [
   },
   {
     label: "Photonic *",
-    value: "RND - Inprogress",
+    value: "R&D - Inprogress",
   },
   {
     label: "Netural Atom *",
-    value: "Upcomming",
+    value: "upcoming",
   },
 ];
