@@ -53,13 +53,12 @@ export function PipelineStepCard({
       className={[
         "flex h-full w-full gap-2.5 rounded-xl border px-3",
         multiline ? "items-start px-4 py-3.5" : "items-center",
-        "bg-white text-black dark:bg-black dark:text-white",
         onOpen
           ? "cursor-pointer transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#733d22]"
           : "",
         accent
-          ? `border-2 border-[#733d22]/50 ${onOpen ? "hover:border-[#733d22]" : ""}`
-          : `border-black/15 dark:border-white/15 ${
+          ? `bg-[#733d22]/20 text-black dark:text-white border-2 border-[#733d22]/50 ${onOpen ? "hover:border-[#733d22]" : ""}`
+          : `bg-white text-black dark:bg-black dark:text-white border-black/15 dark:border-white/15 ${
               onOpen ? "hover:border-black/30 dark:hover:border-white/30" : ""
             }`,
       ].join(" ")}

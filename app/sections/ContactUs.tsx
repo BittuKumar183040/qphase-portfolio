@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 
 import { container, item } from "../util/Reveal";
+import { ChevronRight, MoveRight } from "lucide-react";
 
 export const CONTACT_URL = "https://rexcrux.com/qphase";
 
@@ -40,21 +41,11 @@ export default function ContactUs() {
           href={CONTACT_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="group mt-10 inline-flex items-center gap-2 rounded-full bg-black px-8 py-3.5 text-sm font-medium text-white transition-colors duration-300 hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80"
+          className="group flex items-center gap-2 mt-10 rounded-full bg-black pl-4 text-sm font-medium transition-colors duration-300 hover:bg-black/80 dark:bg-white dark:hover:bg-white/80"
         >
-          Contact Us
-          <svg
-            className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M7 17 17 7" />
-            <path d="M7 7h10v10" />
-          </svg>
+          <span className=" text-white dark:text-black">Contact Us</span>
+
+          <MoveRight size={35} className=" m-2 p-2 rounded-full bg-white text-black dark:text-white dark:bg-black "/>
         </motion.a>
       </motion.div>
     </section>

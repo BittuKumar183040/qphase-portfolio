@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import "@xyflow/react/dist/style.css";
 import { item } from "../util/Reveal";
 import PipelineGraph from "./pipeline/PipelineGraph";
+import { Info } from "lucide-react";
 
 export default function QphasePipeline() {
   return (
@@ -45,7 +46,9 @@ export default function QphasePipeline() {
           variants={item}
           className="mt-6 max-w-2xl text-base leading-relaxed text-black/60 dark:text-white/60 sm:text-lg"
         >
-          QPhase takes one quantum algorithm, translates it into a hardware-independent representation, compiles it for the target architecture, and verifies the result before execution.
+          QPhase takes one quantum algorithm, translates it into a
+          hardware-independent representation, compiles it for the target
+          architecture, and verifies the result before execution.
         </motion.p>
       </motion.div>
 
@@ -55,11 +58,19 @@ export default function QphasePipeline() {
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.1 }}
-        className="mt-12 flex min-h-0 flex-1"
+        className="relative mt-12 flex min-h-0 flex-1"
       >
         <ReactFlowProvider>
           <PipelineGraph />
         </ReactFlowProvider>
+        <div className=" absolute top-1 right-0 z-10 flex items-center gap-2 rounded-full bg-white/10 dark:bg-black/10 p-2 text-xs text-black/40 dark:text-white/40 backdrop-blur-xs pointer-events-auto group">
+          <button type="button" aria-label="Show details" className=" flex items-center justify-center rounded-full outline-none " >
+            <Info size={20} />
+          </button>
+          <span className="hidden md:block whitespace-nowrap group-focus-within:block ">
+            Click a step for details
+          </span>
+        </div>
       </motion.div>
 
       {/* Bottom explanation — natural height */}
@@ -78,7 +89,9 @@ export default function QphasePipeline() {
         className="mt-8 grid flex-none gap-6 border-t border-black/10 pt-6 dark:border-white/10 sm:grid-cols-3"
       >
         <motion.div variants={item}>
-          <p className="text-sm font-medium text-black/80 dark:text-white/80">Write once</p>
+          <p className="text-sm font-medium text-black/80 dark:text-white/80">
+            Write once
+          </p>
 
           <p className="mt-1.5 text-xs leading-relaxed text-black/50 dark:text-white/50">
             One algorithm becomes a portable QPhase representation.
@@ -86,7 +99,9 @@ export default function QphasePipeline() {
         </motion.div>
 
         <motion.div variants={item}>
-          <p className="text-sm font-medium text-black/80 dark:text-white/80">Compile anywhere</p>
+          <p className="text-sm font-medium text-black/80 dark:text-white/80">
+            Compile anywhere
+          </p>
 
           <p className="mt-1.5 text-xs leading-relaxed text-black/50 dark:text-white/50">
             The same representation is mapped to different hardware.
@@ -94,7 +109,9 @@ export default function QphasePipeline() {
         </motion.div>
 
         <motion.div variants={item}>
-          <p className="text-sm font-medium text-black/80 dark:text-white/80">Verify before execution</p>
+          <p className="text-sm font-medium text-black/80 dark:text-white/80">
+            Verify before execution
+          </p>
 
           <p className="mt-1.5 text-xs leading-relaxed text-black/50 dark:text-white/50">
             Every compilation is checked against the original circuit.

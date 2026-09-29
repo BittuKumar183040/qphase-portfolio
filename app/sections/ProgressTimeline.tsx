@@ -17,23 +17,24 @@ function stageFor(value: string): Stage {
   return "upcoming";
 }
 
-const STAGE_STYLE: Record<Stage, { dot: string; ring: string; text: string }> = {
-  "Benchmarked": {
-    dot: "bg-emerald-400",
-    ring: "ring-emerald-400/25",
-    text: "text-emerald-400",
-  },
-  "R&D - Inprogress": {
-    dot: "bg-amber-400",
-    ring: "ring-amber-400/25",
-    text: "text-amber-400",
-  },
-  "upcoming": {
-    dot: "bg-gray-300",
-    ring: "ring-white/10",
-    text: "text-white/40",
-  },
-};
+const STAGE_STYLE: Record<Stage, { dot: string; ring: string; text: string }> =
+  {
+    Benchmarked: {
+      dot: "bg-emerald-400",
+      ring: "ring-emerald-400/25",
+      text: "text-emerald-400",
+    },
+    "R&D - Inprogress": {
+      dot: "bg-amber-400",
+      ring: "ring-amber-400/25",
+      text: "text-amber-400",
+    },
+    upcoming: {
+      dot: "bg-gray-300",
+      ring: "ring-white/10",
+      text: "text-white/40",
+    },
+  };
 
 const containerVariants: Variants = {
   hidden: {},
@@ -88,7 +89,7 @@ const ProgressTimeline = () => {
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.4 }}
-        className="flex list-none flex-row justify-between gap-4  px-5 sm:px-5 md:px-10 lg:px-20"
+        className="flex list-none flex-row justify-between gap-4 px-5 sm:px-5 md:px-10 lg:px-20"
       >
         {status.map((entry, index) => {
           const stage = stageFor(entry.value);
@@ -100,12 +101,12 @@ const ProgressTimeline = () => {
               variants={stepVariants}
               className="relative flex shrink-0 flex-col items-center gap-0 text-center sm:flex-1"
             >
-              {index > 0 && (
+              {index < 2 && (
                 <motion.span
                   aria-hidden
                   variants={lineVariants}
-                  style={{ transformOrigin: "left" }}
-                  className="absolute left-0 right-1/2 top-1 h-0.5 w-auto bg-white/15"
+                  style={{ transformOrigin: "center" }}
+                  className="absolute left-1/2 ml-2 top-1 h-0.5 w-full bg-white/15"
                 />
               )}
 
@@ -119,14 +120,18 @@ const ProgressTimeline = () => {
                     className={`absolute h-full w-full animate-ping rounded-full opacity-60 ${styles.dot}`}
                   />
                 )}
-                <span className={`relative size-3 rounded-full ring-4 ${styles.ring} ${styles.dot}`} />
+                <span
+                  className={`relative size-3 rounded-full ring-4 ${styles.ring} ${styles.dot}`}
+                />
               </motion.span>
 
               <motion.div variants={textVariants} className="mt-3 sm:mt-4">
                 <p className="text-[11px] font-medium leading-tight text-white/80 sm:text-sm">
                   {entry.label}
                 </p>
-                <p className={`mt-1 text-[9px] font-medium uppercase tracking-wide sm:text-xs ${styles.text}`}>
+                <p
+                  className={`mt-1 text-[9px] font-medium uppercase tracking-wide sm:text-xs ${styles.text}`}
+                >
                   {entry.value}
                 </p>
               </motion.div>
@@ -136,6 +141,6 @@ const ProgressTimeline = () => {
       </motion.ul>
     </motion.div>
   );
-}
+};
 
-export default ProgressTimeline
+export default ProgressTimeline;
