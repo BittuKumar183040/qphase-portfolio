@@ -12,7 +12,7 @@ export const ContainerScroll = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start center", "end center"],
+    offset: ["start 90%", "end center"],
   });
 
   const width = useTransform(scrollYProgress, [0, 0.5], ["70vw", "100vw"]);
