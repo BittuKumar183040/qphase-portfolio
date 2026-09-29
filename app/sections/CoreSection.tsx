@@ -336,13 +336,15 @@ function CoreSectionInner({ coreImageSrc, items = CORE_ITEMS }: CoreSectionProps
   return (
     // Mobile (base, <640): the container's own aspect ratio matches CANVAS_SIZES[2] (taller than
     // wide) exactly, so fitView fills it edge to edge instead of letterboxing — this is what
-    // actually spreads the cards down the screen, not just giving the section more height.
-    // Capped at the dynamic viewport height so it can never force the page taller than the
-    // visible screen. Tablet (sm, 640–1023): matches CANVAS_SIZES[1]. Desktop (lg, 1024+):
-    // reverts to the original parent-controlled h-full/w-full sizing.
+    // actually spreads the cards down the screen, not just giving the section more height. Height
+    // is driven purely by this aspect ratio against the container's width (i.e. by how much the
+    // content actually needs), with no viewport-height cap — so it never clips content on a short
+    // viewport, it just takes whatever height that ratio works out to. Tablet (sm, 640–1023):
+    // matches CANVAS_SIZES[1]. Desktop (lg, 1024+): reverts to the original parent-controlled
+    // h-full/w-full sizing.
     <section
       ref={sectionRef}
-      className="relative pointer-events-none aspect-[720/1180] max-h-dvh w-full sm:aspect-[980/680] lg:aspect-auto lg:h-full lg:max-h-none"
+      className="relative pointer-events-none aspect-[720/1180] w-full sm:aspect-[980/680] lg:aspect-auto lg:h-full"
     >
       <ReactFlow
         nodes={nodes}

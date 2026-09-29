@@ -65,13 +65,24 @@ export const Card = ({
         borderRadius: radius,
         transformPerspective: 1200,
       }}
-      className="relative origin-top overflow-hidden bg-black dark:bg-white/20 "
+      className="relative origin-top bg-black dark:bg-white/20 "
     >
-      <div className="relative w-full h-dvh">
-        <div className="absolute left-1/2 top-0 h-full w-screen max-w-none -translate-x-1/2">
+      {/*
+        Below lg: no height is forced here — this div sizes to its child's natural height, which
+        is CoreSection's own aspect-ratio height (see CoreSection.tsx). The breakout to full
+        viewport width still works with `relative` (rather than `absolute`) positioning: `left-1/2`
+        + `-translate-x-1/2` shift the box visually without pulling it out of flow, so its real
+        height still comes from its content and still determines this wrapper's height.
+
+        At lg: switches to the original full-bleed behavior — `absolute` + `h-full` fills the
+        `lg:h-dvh` set on the parent below, since CoreSection itself asks for `lg:h-full` there.
+      */}
+      <div className="relative w-full lg:h-dvh">
+        <div className="relative left-1/2 top-0 w-screen max-w-none -translate-x-1/2 lg:absolute lg:h-full">
           {children}
         </div>
       </div>
+      <div className=" absolute -bottom-28 h-50 -z-20 w-full bg-black dark:bg-white/20"></div>
     </motion.div>
   );
 };
